@@ -1,0 +1,32 @@
+{
+  "headers": [
+    {
+      "source": "/(.*).html",
+      "headers": [
+        {
+          "key": "Content-Security-Policy",
+          "value": "default-src 'self' 'unsafe-inline' 'unsafe-eval' data: blob:; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://cdnjs.cloudflare.com https://unpkg.com; style-src 'self' 'unsafe-inline' https://cdnjs.cloudflare.com; font-src 'self' https://cdnjs.cloudflare.com; img-src 'self' data: blob:;"
+        }
+      ]
+    },
+    {
+      "source": "/global.js",
+      "headers": [
+        {
+          "key": "Content-Security-Policy",
+          "value": "script-src 'self' 'unsafe-inline' 'unsafe-eval'"
+        }
+      ]
+    }
+  ],
+  "rewrites": [
+    {
+      "source": "/",
+      "destination": "/index.html"
+    },
+    {
+      "source": "/modules",
+      "destination": "/modules/index.html"
+    }
+  ]
+}
