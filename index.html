@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PLT-2026 | Personal Life Tracker</title>
+    <link rel="stylesheet" href="global.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="manifest" href="manifest.json">
+    <link rel="icon" href="icons/favicon.ico">
+</head>
+<body class="dark-mode">
+    <div class="container">
+        <header class="header">
+            <div class="logo-container">
+                <div class="logo">
+                    <i class="fas fa-crown"></i>
+                    <h1>PLT-2026</h1>
+                    <p class="tagline">When something is important enough, you do it even if the odds are not in your favor.</p>
+                </div>
+            </div>
+        </header>
+
+        <main class="modules-grid">
+            <!-- <h2 class="section-title">Life Modules</h2> -->
+            <div class="modules-container" id="modules-container"></div>
+        </main>
+
+        <!-- <section class="quick-actions">
+            <h2 class="section-title">Quick Actions</h2>
+            <div class="actions-container">
+                <button class="action-btn" id="daily-report">
+                    <i class="fas fa-file-pdf"></i>
+                    <span>Daily Report</span>
+                </button>
+                <button class="action-btn" id="add-entry">
+                    <i class="fas fa-plus-circle"></i>
+                    <span>New Entry</span>
+                </button>
+                <button class="action-btn" id="backup-now">
+                    <i class="fas fa-cloud-upload-alt"></i>
+                    <span>Backup Data</span>
+                </button>
+                <button class="action-btn" id="view-calendar">
+                    <i class="far fa-calendar-check"></i>
+                    <span>View Calendar</span>
+                </button>
+            </div>
+        </section> -->
+
+        <!-- <footer class="footer">
+            <div class="footer-content">
+                <p>PLT-2026 &copy; <span id="current-year"></span> | Personal Life Tracker System</p>
+                <div class="footer-links">
+                    <a href="views/settings.html">Settings</a>
+                    <a href="views/backup-restore.html">Backup</a>
+                    <a href="#" id="export-data">Export Data</a>
+                </div>
+            </div>
+            <div class="system-status">
+                <span class="status-indicator active"></span>
+                <span>All Systems Operational</span>
+            </div>
+        </footer> -->
+    <!-- </div> -->
+
+    <script src="global.js"></script>
+    <script>
+        const modules = [
+            { id: 1, name: "Health Tracker", icon: "fas fa-heartbeat", link: "modules/01-health.html", color: "#e63946" },
+            { id: 2, name: "DSA Practice", icon: "fas fa-code", link: "modules/02-dsa.html", color: "#1d3557" },
+            { id: 8, name: "Dev Tasks", icon: "fas fa-laptop-code", link: "modules/08-development.html", color: "#fb5607" },
+            { id: 14, name: "Classes and Tasks", icon: "fas fa-tasks", link: "modules/14-tasks.html", color: "#fb5607" },
+            { id: 10, name: "Typing Practice", icon: "fas fa-keyboard", link: "modules/10-typing.html", color: "#9b5de5" },
+            { id: 6, name: "Language Learning", icon: "fas fa-language", link: "modules/06-duolingo.html", color: "#06d6a0" },
+            { id: 4, name: "YouTube Tracker", icon: "fab fa-youtube", link: "modules/04-youtube.html", color: "#ff006e" },
+            { id: 5, name: "Social Media", icon: "fas fa-users", link: "modules/05-social-media.html", color: "#3a86ff" },
+            { id: 11, name: "Daily Journal", icon: "fas fa-book", link: "modules/11-diary.html", color: "#f15bb5" },
+            { id: 12, name: "Habit Tracker", icon: "fas fa-images", link: "modules/12-gallery.html", color: "#00f5d4" },
+            { id: 13, name: "Screen Time", icon: "fas fa-desktop", link: "modules/13-screentime.html", color: "#fee440" },
+            { id: 13, name: "Get Reports", icon: "fas fa-font", link: "modules/15-pdf-export.html", color: "#fee440" }
+        ];
+
+        document.addEventListener('DOMContentLoaded', function() {
+            const modulesContainer = document.getElementById('modules-container');
+            
+            modules.forEach(module => {
+                const moduleCard = document.createElement('a');
+                moduleCard.href = module.link;
+                moduleCard.className = 'module-card';
+                moduleCard.innerHTML = `
+                    <div class="module-icon" style="color: ${module.color}">
+                        <i class="${module.icon}"></i>
+                    </div>
+                    <h3 class="module-title">${module.name}</h3>
+                    <div class="module-indicator">
+                        <div class="indicator-dot active"></div>
+                        <span>Active</span>
+                    </div>
+                `;
+                modulesContainer.appendChild(moduleCard);
+            });
+            
+            document.getElementById('current-year').textContent = new Date().getFullYear();
+            
+            document.querySelectorAll('.btn-icon, .action-btn').forEach(button => {
+                button.addEventListener('click', function() {
+                    this.classList.add('clicked');
+                    setTimeout(() => {
+                        this.classList.remove('clicked');
+                    }, 300);
+                });
+            });
+            
+            document.getElementById('theme-toggle').addEventListener('click', function() {
+                document.body.classList.toggle('dark-mode');
+                const icon = this.querySelector('i');
+                if (document.body.classList.contains('dark-mode')) {
+                    icon.className = 'fas fa-sun';
+                } else {
+                    icon.className = 'fas fa-adjust';
+                }
+            });
+            
+            document.getElementById('daily-report').addEventListener('click', function() {
+                window.location.href = 'modules/15-pdf-export.html';
+            });
+            
+            document.getElementById('add-entry').addEventListener('click', function() {
+                window.location.href = 'modules/11-diary.html';
+            });
+            
+            document.getElementById('backup-now').addEventListener('click', function() {
+                window.location.href = 'views/backup-restore.html';
+            });
+            
+            document.getElementById('view-calendar').addEventListener('click', function() {
+                window.location.href = 'views/calendar-view.html';
+            });
+            
+            document.getElementById('export-data').addEventListener('click', function(e) {
+                e.preventDefault();
+                alert('Export functionality will be implemented in the data module.');
+            });
+        });
+    </script>
+</body>
+</html>

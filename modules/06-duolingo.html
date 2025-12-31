@@ -1,0 +1,1155 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PLT-2026 | Development Task Tracker</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', system-ui, sans-serif;
+        }
+
+        :root {
+            --bg-dark: #0a0a0f;
+            --surface-dark: #111122;
+            --surface-light: #1a1a2e;
+            --text-primary: #ffffff;
+            --text-secondary: #cccccc;
+            --text-muted: #888888;
+            --border-color: rgba(255, 255, 255, 0.08);
+            --accent-gold: #d4af37;
+            --accent-gold-light: #f4e4a6;
+            --accent-silver: #c0c0c0;
+            --shadow-dark: 0 8px 32px rgba(0, 0, 0, 0.4);
+            --shadow-light: 0 4px 16px rgba(0, 0, 0, 0.3);
+            --border-radius: 10px;
+            --transition: all 0.3s ease;
+        }
+
+        body {
+            background: var(--bg-dark);
+            color: var(--text-primary);
+            min-height: 100vh;
+            padding: 20px;
+            line-height: 1.6;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            display: grid;
+            grid-template-columns: 1fr 2fr 1fr;
+            gap: 20px;
+        }
+
+        /* Header Styles */
+        header {
+            grid-column: 1 / -1;
+            background: var(--surface-dark);
+            border: 1px solid var(--border-color);
+            border-radius: var(--border-radius);
+            padding: 24px 32px;
+            margin-bottom: 10px;
+            box-shadow: var(--shadow-dark);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        header::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 2px;
+            background: linear-gradient(90deg, transparent, var(--accent-gold), transparent);
+        }
+
+        .header-title h1 {
+            color: var(--text-primary);
+            font-size: 2.2rem;
+            margin-bottom: 6px;
+            font-weight: 300;
+            letter-spacing: 1px;
+        }
+
+        .header-title h1 i {
+            color: var(--accent-gold);
+            margin-right: 12px;
+        }
+
+        .header-title p {
+            color: var(--text-muted);
+            font-size: 1rem;
+            letter-spacing: 0.5px;
+        }
+
+        .date-selector {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .date-display {
+            background: var(--surface-light);
+            border: 1px solid var(--border-color);
+            border-radius: var(--border-radius);
+            padding: 14px 20px;
+            font-size: 1.1rem;
+            font-weight: 400;
+            color: var(--text-primary);
+            min-width: 200px;
+            text-align: center;
+            letter-spacing: 0.5px;
+        }
+
+        .date-nav-btn {
+            background: var(--surface-light);
+            border: 1px solid var(--border-color);
+            border-radius: var(--border-radius);
+            width: 44px;
+            height: 44px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--text-secondary);
+            cursor: pointer;
+            transition: var(--transition);
+        }
+
+        .date-nav-btn:hover {
+            background: var(--surface-dark);
+            border-color: var(--accent-gold);
+            color: var(--accent-gold-light);
+        }
+
+        /* Panel Common Styles */
+        .panel {
+            background: var(--surface-dark);
+            border: 1px solid var(--border-color);
+            border-radius: var(--border-radius);
+            padding: 24px;
+            box-shadow: var(--shadow-dark);
+            height: fit-content;
+        }
+
+        .panel h2 {
+            color: var(--text-primary);
+            font-size: 1.4rem;
+            margin-bottom: 20px;
+            padding-bottom: 12px;
+            border-bottom: 1px solid var(--border-color);
+            font-weight: 300;
+            letter-spacing: 1px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .panel h2 i {
+            color: var(--accent-gold);
+        }
+
+        /* Left Column - Date Management */
+        .date-management .stats {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            margin-bottom: 24px;
+        }
+
+        .stat-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 16px;
+            background: var(--surface-light);
+            border-radius: var(--border-radius);
+            border: 1px solid var(--border-color);
+        }
+
+        .stat-label {
+            color: var(--text-muted);
+            font-size: 0.9rem;
+            letter-spacing: 0.5px;
+        }
+
+        .stat-value {
+            color: var(--text-primary);
+            font-size: 1.4rem;
+            font-weight: 300;
+        }
+
+        .date-actions {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .btn {
+            padding: 14px 20px;
+            border: 1px solid var(--border-color);
+            border-radius: var(--border-radius);
+            font-weight: 400;
+            font-size: 0.95rem;
+            cursor: pointer;
+            transition: var(--transition);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            letter-spacing: 0.5px;
+            background: var(--surface-light);
+            color: var(--text-primary);
+        }
+
+        .btn:hover {
+            background: var(--surface-dark);
+            border-color: var(--accent-gold);
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-light);
+            color: var(--accent-gold-light);
+        }
+
+        /* Center Column - Task Management */
+        .add-task-form {
+            background: var(--surface-light);
+            border-radius: var(--border-radius);
+            padding: 20px;
+            margin-bottom: 24px;
+            border: 1px solid var(--border-color);
+        }
+
+        .form-group {
+            margin-bottom: 16px;
+        }
+
+        .form-group label {
+            display: block;
+            color: var(--text-secondary);
+            margin-bottom: 8px;
+            font-weight: 400;
+            font-size: 0.9rem;
+            letter-spacing: 0.5px;
+        }
+
+        .form-control {
+            width: 100%;
+            padding: 12px 16px;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            color: var(--text-primary);
+            font-size: 0.95rem;
+            transition: var(--transition);
+        }
+
+        .form-control:focus {
+            outline: none;
+            border-color: var(--accent-gold);
+            background: rgba(255, 255, 255, 0.08);
+        }
+
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 16px;
+        }
+
+        .percentage-slider {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+
+        .percentage-slider input {
+            flex: 1;
+            background: rgba(255, 255, 255, 0.05);
+        }
+
+        .percentage-value {
+            min-width: 50px;
+            text-align: center;
+            font-weight: 400;
+            color: var(--text-primary);
+        }
+
+        .task-list {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .task-item {
+            background: var(--surface-light);
+            border: 1px solid var(--border-color);
+            border-radius: var(--border-radius);
+            padding: 20px;
+            transition: var(--transition);
+        }
+
+        .task-item:hover {
+            border-color: var(--accent-gold);
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-light);
+        }
+
+        .task-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 12px;
+        }
+
+        .task-title {
+            color: var(--text-primary);
+            font-size: 1.1rem;
+            font-weight: 400;
+        }
+
+        .task-actions {
+            display: flex;
+            gap: 8px;
+        }
+
+        .task-action-btn {
+            background: none;
+            border: 1px solid var(--border-color);
+            color: var(--text-muted);
+            cursor: pointer;
+            width: 34px;
+            height: 34px;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: var(--transition);
+        }
+
+        .task-action-btn:hover {
+            background: var(--surface-dark);
+            border-color: var(--accent-gold);
+            color: var(--accent-gold-light);
+        }
+
+        #datePicker::-webkit-calendar-picker-indicator {
+            filter: invert(1);
+            cursor: pointer;
+        }
+
+        .task-description {
+            color: var(--text-secondary);
+            margin-bottom: 16px;
+            font-size: 0.9rem;
+            line-height: 1.5;
+        }
+
+        .task-meta {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 12px;
+            font-size: 0.85rem;
+        }
+
+        .task-category,
+        .task-priority {
+            background: rgba(255, 255, 255, 0.05);
+            color: var(--text-secondary);
+            padding: 4px 12px;
+            border-radius: 20px;
+            border: 1px solid var(--border-color);
+            font-weight: 400;
+        }
+
+        .progress-container {
+            margin-top: 16px;
+        }
+
+        .progress-info {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 8px;
+        }
+
+        .progress-label {
+            color: var(--text-muted);
+        }
+
+        .progress-percentage {
+            color: var(--text-primary);
+            font-weight: 400;
+        }
+
+        .progress-bar {
+            height: 6px;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 3px;
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: var(--accent-gold);
+            border-radius: 3px;
+            transition: width 0.5s ease;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 40px 20px;
+            color: var(--text-muted);
+        }
+
+        .empty-state i {
+            font-size: 2.5rem;
+            margin-bottom: 16px;
+            color: var(--border-color);
+        }
+
+        /* Right Column - Progress Summary */
+        .daily-summary .summary-stats {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+            margin-bottom: 24px;
+        }
+
+        .summary-item {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+
+        .summary-icon {
+            width: 48px;
+            height: 48px;
+            border-radius: var(--border-radius);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.2rem;
+            background: var(--surface-light);
+            border: 1px solid var(--border-color);
+            color: var(--accent-gold);
+        }
+
+        .summary-content h3 {
+            color: var(--text-primary);
+            font-size: 1.6rem;
+            margin-bottom: 4px;
+            font-weight: 300;
+        }
+
+        .summary-content p {
+            color: var(--text-muted);
+            font-size: 0.9rem;
+            letter-spacing: 0.5px;
+        }
+
+        .category-breakdown {
+            margin-top: 24px;
+        }
+
+        .category-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px 0;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .category-item:last-child {
+            border-bottom: none;
+        }
+
+        .category-name {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            color: var(--text-secondary);
+        }
+
+        .category-count {
+            color: var(--text-primary);
+            font-weight: 400;
+        }
+
+        /* Responsive Design */
+        @media (max-width: 1200px) {
+            .container {
+                grid-template-columns: 1fr;
+                gap: 20px;
+            }
+
+            .form-row {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        @media (max-width: 768px) {
+            body {
+                padding: 16px;
+            }
+
+            header {
+                flex-direction: column;
+                gap: 20px;
+                text-align: center;
+                padding: 20px;
+            }
+
+            .date-selector {
+                width: 100%;
+                justify-content: center;
+            }
+
+            .panel {
+                padding: 20px;
+            }
+        }
+
+        @media (max-width: 480px) {
+            body {
+                padding: 12px;
+            }
+
+            .container {
+                gap: 16px;
+            }
+
+            header {
+                padding: 16px;
+            }
+
+            .header-title h1 {
+                font-size: 1.8rem;
+            }
+
+            .date-display {
+                min-width: auto;
+                padding: 12px;
+                font-size: 1rem;
+            }
+
+            .btn {
+                padding: 12px 16px;
+                font-size: 0.9rem;
+            }
+        }
+
+        /* Animation for new tasks */
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .task-item {
+            animation: fadeIn 0.3s ease;
+        }
+
+        /* Date highlight for today */
+        .today-highlight {
+            position: relative;
+        }
+
+        .today-highlight::after {
+            content: "Today";
+            position: absolute;
+            top: -8px;
+            right: -8px;
+            background: var(--accent-gold);
+            color: var(--bg-dark);
+            font-size: 0.7rem;
+            font-weight: 500;
+            padding: 3px 8px;
+            border-radius: 10px;
+            border: 1px solid var(--border-color);
+        }
+    </style>
+
+<body>
+    <div class="container">
+        <!-- Header -->
+        <header>
+            <div class="header-title">
+                <h1><i class="fas fa-code"></i> Language Task Tracker</h1>
+                <p>My daily Language tasks planner.</p>
+            </div>
+            <div class="date-selector">
+                <button class="date-nav-btn" id="prevDayBtn">
+                    <i class="fas fa-chevron-left"></i>
+                </button>
+                <div class="date-display" id="currentDateDisplay">
+                    Loading...
+                </div>
+                <button class="date-nav-btn" id="nextDayBtn">
+                    <i class="fas fa-chevron-right"></i>
+                </button>
+                <input type="date" id="datePicker" class="form-control" style="width: 150px; padding: 10px;">
+            </div>
+        </header>
+
+        <!-- Left Column: Date Management -->
+        <div class="panel date-management">
+            <h2><i class="fas fa-calendar-alt"></i> Date Management</h2>
+
+            <div class="stats">
+                <div class="stat-item">
+                    <span class="stat-label">Total Tasks</span>
+                    <span class="stat-value" id="totalTasks">0</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-label">Completed</span>
+                    <span class="stat-value" id="completedTasks">0</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-label">Avg. Progress</span>
+                    <span class="stat-value" id="avgProgress">0%</span>
+                </div>
+            </div>
+
+            <div class="date-actions">
+                <button class="btn btn-primary" id="copyPreviousBtn">
+                    <i class="fas fa-copy"></i> Copy Tasks from Previous Day
+                </button>
+                <button class="btn btn-secondary" id="markAllCompleteBtn">
+                    <i class="fas fa-check-circle"></i> Mark All as Complete
+                </button>
+                <button class="btn btn-warning" id="clearTasksBtn">
+                    <i class="fas fa-trash-alt"></i> Clear Today's Tasks
+                </button>
+            </div>
+        </div>
+
+        <!-- Center Column: Task Management -->
+        <div class="panel task-management">
+            <h2><i class="fas fa-tasks"></i> Task Management</h2>
+
+            <div class="add-task-form">
+                <div class="form-group">
+                    <label for="taskTitle">Task Title</label>
+                    <input type="text" id="taskTitle" class="form-control"
+                        placeholder="e.g., Fix login authentication bug">
+                </div>
+
+                <div class="form-group">
+                    <label for="taskDescription">Description (Optional)</label>
+                    <textarea id="taskDescription" class="form-control" rows="2"
+                        placeholder="Add details about the task..."></textarea>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="taskCategory">Category</label>
+                        <select id="taskCategory" class="form-control">
+                            <option value="French">French</option>
+                            <option value="German">German</option>
+                            <option value="Japanese">Japanese</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="taskPriority">Priority</label>
+                        <select id="taskPriority" class="form-control">
+                            <option value="Low">Low</option>
+                            <option value="Medium" selected>Medium</option>
+                            <option value="High">High</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label for="taskPercentage">Completion Percentage</label>
+                    <div class="percentage-slider">
+                        <input type="range" id="taskPercentage" class="form-control" min="0" max="100" value="0">
+                        <span class="percentage-value" id="percentageValue">0%</span>
+                    </div>
+                </div>
+
+                <button class="btn btn-primary" id="addTaskBtn" style="width: 100%;">
+                    <i class="fas fa-plus-circle"></i> Add Task
+                </button>
+            </div>
+
+            <div class="task-list" id="taskListContainer">
+                <!-- Tasks will be dynamically inserted here -->
+                <div class="empty-state">
+                    <i class="fas fa-clipboard-list"></i>
+                    <h3>No tasks for this day</h3>
+                    <p>Add your first Language task using the form above</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Right Column: Progress Summary -->
+        <div class="panel daily-summary">
+            <h2><i class="fas fa-chart-line"></i> Daily Summary</h2>
+
+            <div class="summary-stats">
+                <div class="summary-item">
+                    <div class="summary-icon completion">
+                        <i class="fas fa-flag-checkered"></i>
+                    </div>
+                    <div class="summary-content">
+                        <h3 id="completionRate">0%</h3>
+                        <p>Completion Rate</p>
+                    </div>
+                </div>
+
+                <div class="summary-item">
+                    <div class="summary-icon tasks">
+                        <i class="fas fa-list-check"></i>
+                    </div>
+                    <div class="summary-content">
+                        <h3 id="inProgressTasks">0</h3>
+                        <p>Tasks In Progress</p>
+                    </div>
+                </div>
+
+                <div class="summary-item">
+                    <div class="summary-icon time">
+                        <i class="fas fa-clock"></i>
+                    </div>
+                    <div class="summary-content">
+                        <h3 id="estimatedTime">0h</h3>
+                        <p>Estimated Time</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="category-breakdown">
+                <h3 style="margin-bottom: 16px; font-size: 1.2rem;">Category Breakdown</h3>
+                <div id="categoryBreakdown">
+                    <!-- Category items will be dynamically inserted here -->
+                    <div class="empty-state" style="padding: 20px 0;">
+                        <i class="fas fa-chart-pie"></i>
+                        <p>No tasks added yet</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Development Task Tracker Application
+        class DevelopmentTaskTracker {
+            constructor() {
+                this.currentDate = new Date();
+                this.tasks = [];
+                this.init();
+            }
+
+            init() {
+                // Initialize date display
+                this.updateDateDisplay();
+
+                // Load tasks for current date
+                this.loadTasks();
+
+                // Setup event listeners
+                this.setupEventListeners();
+
+                // Update statistics
+                this.updateStatistics();
+            }
+
+            // Format date as YYYY-MM-DD for localStorage keys
+            formatDate(date) {
+                const year = date.getFullYear();
+                const month = String(date.getMonth() + 1).padStart(2, '0');
+                const day = String(date.getDate()).padStart(2, '0');
+                return `${year}-${month}-${day}`;
+            }
+
+            // Format date for display
+            formatDateDisplay(date) {
+                const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
+                const today = new Date();
+                const isToday = date.toDateString() === today.toDateString();
+
+                let displayText = date.toLocaleDateString('en-US', options);
+                if (isToday) {
+                    displayText = `Today, ${date.toLocaleDateString('en-US', { month: 'long', day: 'numeric' })}`;
+                }
+
+                return displayText;
+            }
+
+            // Update the date display in the UI
+            updateDateDisplay() {
+                const dateDisplay = document.getElementById('currentDateDisplay');
+                dateDisplay.textContent = this.formatDateDisplay(this.currentDate);
+
+                // Highlight if today
+                const today = new Date();
+                if (this.currentDate.toDateString() === today.toDateString()) {
+                    dateDisplay.classList.add('today-highlight');
+                } else {
+                    dateDisplay.classList.remove('today-highlight');
+                }
+
+                // Set date picker value
+                document.getElementById('datePicker').value = this.formatDate(this.currentDate);
+            }
+
+            // Load tasks for the current date from localStorage
+            loadTasks() {
+                const dateKey = `lang_tasks_${this.formatDate(this.currentDate)}`;
+                const storedTasks = localStorage.getItem(dateKey);
+
+                if (storedTasks) {
+                    this.tasks = JSON.parse(storedTasks);
+                } else {
+                    this.tasks = [];
+                }
+
+                this.renderTasks();
+                this.updateStatistics();
+            }
+
+            // Save tasks for the current date to localStorage
+            saveTasks() {
+                const dateKey = `lang_tasks_${this.formatDate(this.currentDate)}`;
+                localStorage.setItem(dateKey, JSON.stringify(this.tasks));
+                this.updateStatistics();
+            }
+
+            // Add a new task
+            addTask(taskData) {
+                const newTask = {
+                    id: `task_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+                    title: taskData.title || 'Untitled Task',
+                    description: taskData.description || '',
+                    percentage: parseInt(taskData.percentage) || 0,
+                    category: taskData.category || 'French',
+                    priority: taskData.priority || 'Medium',
+                    completed: taskData.percentage === 100
+                };
+
+                this.tasks.push(newTask);
+                this.saveTasks();
+                this.renderTasks();
+
+                // Clear the form
+                document.getElementById('taskTitle').value = '';
+                document.getElementById('taskDescription').value = '';
+                document.getElementById('taskPercentage').value = 0;
+                document.getElementById('percentageValue').textContent = '0%';
+            }
+
+            // Update task progress
+            updateTaskProgress(taskId, newPercentage) {
+                const taskIndex = this.tasks.findIndex(task => task.id === taskId);
+                if (taskIndex !== -1) {
+                    this.tasks[taskIndex].percentage = parseInt(newPercentage);
+                    this.tasks[taskIndex].completed = parseInt(newPercentage) === 100;
+                    this.saveTasks();
+                    this.renderTasks();
+                }
+            }
+
+            // Delete a task
+            deleteTask(taskId) {
+                this.tasks = this.tasks.filter(task => task.id !== taskId);
+                this.saveTasks();
+                this.renderTasks();
+            }
+
+            // Mark all tasks as complete
+            markAllComplete() {
+                this.tasks.forEach(task => {
+                    task.percentage = 100;
+                    task.completed = true;
+                });
+                this.saveTasks();
+                this.renderTasks();
+            }
+
+            // Clear all tasks for current date
+            clearTasks() {
+                if (confirm('Are you sure you want to clear all tasks for this day?')) {
+                    this.tasks = [];
+                    this.saveTasks();
+                    this.renderTasks();
+                }
+            }
+
+            // Copy tasks from previous day
+            copyPreviousDayTasks() {
+                const previousDate = new Date(this.currentDate);
+                previousDate.setDate(previousDate.getDate() - 1);
+                const previousDateKey = `lang_tasks_${this.formatDate(previousDate)}`;
+
+                const previousTasks = localStorage.getItem(previousDateKey);
+                if (previousTasks) {
+                    const tasksToCopy = JSON.parse(previousTasks);
+
+                    // Reset completion for copied tasks
+                    const copiedTasks = tasksToCopy.map(task => ({
+                        ...task,
+                        id: `task_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+                        percentage: 0,
+                        completed: false
+                    }));
+
+                    this.tasks = [...this.tasks, ...copiedTasks];
+                    this.saveTasks();
+                    this.renderTasks();
+                    alert(`Copied ${copiedTasks.length} tasks from ${this.formatDateDisplay(previousDate)}`);
+                } else {
+                    alert('No tasks found for the previous day.');
+                }
+            }
+
+            // Render tasks to the UI
+            renderTasks() {
+                const taskListContainer = document.getElementById('taskListContainer');
+
+                if (this.tasks.length === 0) {
+                    taskListContainer.innerHTML = `
+                        <div class="empty-state">
+                            <i class="fas fa-clipboard-list"></i>
+                            <h3>No tasks for this day</h3>
+                            <p>Add your first Language task using the form above</p>
+                        </div>
+                    `;
+                    return;
+                }
+
+                taskListContainer.innerHTML = '';
+
+                this.tasks.forEach(task => {
+                    const taskElement = document.createElement('div');
+                    taskElement.className = 'task-item';
+                    taskElement.innerHTML = `
+                        <div class="task-header">
+                            <div class="task-title">${task.title}</div>
+                            <div class="task-actions">
+                                <button class="task-action-btn delete-task" data-task-id="${task.id}" title="Delete Task">
+                                    <i class="fas fa-trash"></i>
+                                </button>
+                            </div>
+                        </div>
+                        
+                        ${task.description ? `<div class="task-description">${task.description}</div>` : ''}
+                        
+                        <div class="task-meta">
+                            <span class="task-category">${task.category}</span>
+                            <span class="task-priority priority-${task.priority.toLowerCase()}">${task.priority}</span>
+                        </div>
+                        
+                        <div class="progress-container">
+                            <div class="progress-info">
+                                <span class="progress-label">Progress</span>
+                                <span class="progress-percentage">${task.percentage}%</span>
+                            </div>
+                            <div class="progress-bar">
+                                <div class="progress-fill" style="width: ${task.percentage}%"></div>
+                            </div>
+                            <input type="range" class="task-progress-slider" data-task-id="${task.id}" min="0" max="100" value="${task.percentage}" style="width: 100%; margin-top: 8px;">
+                        </div>
+                    `;
+
+                    taskListContainer.appendChild(taskElement);
+                });
+
+                // Add event listeners for dynamically created elements
+                this.addTaskEventListeners();
+            }
+
+            // Update statistics and summary
+            updateStatistics() {
+                // Calculate statistics
+                const totalTasks = this.tasks.length;
+                const completedTasks = this.tasks.filter(task => task.percentage === 100).length;
+                const totalProgress = this.tasks.reduce((sum, task) => sum + task.percentage, 0);
+                const avgProgress = totalTasks > 0 ? Math.round(totalProgress / totalTasks) : 0;
+                const completionRate = totalTasks > 0 ? Math.round((completedTasks / totalTasks) * 100) : 0;
+                const inProgressTasks = this.tasks.filter(task => task.percentage > 0 && task.percentage < 100).length;
+
+                // Estimated time calculation (assuming 1 hour per task on average)
+                const estimatedTime = Math.round(totalTasks * 1.5);
+
+                // Update left column statistics
+                document.getElementById('totalTasks').textContent = totalTasks;
+                document.getElementById('completedTasks').textContent = completedTasks;
+                document.getElementById('avgProgress').textContent = `${avgProgress}%`;
+
+                // Update right column summary
+                document.getElementById('completionRate').textContent = `${completionRate}%`;
+                document.getElementById('inProgressTasks').textContent = inProgressTasks;
+                document.getElementById('estimatedTime').textContent = `${estimatedTime}h`;
+
+                // Update category breakdown
+                this.updateCategoryBreakdown();
+            }
+
+            // Update category breakdown in the summary panel
+            updateCategoryBreakdown() {
+                const categoryBreakdown = document.getElementById('categoryBreakdown');
+
+                if (this.tasks.length === 0) {
+                    categoryBreakdown.innerHTML = `
+                        <div class="empty-state" style="padding: 20px 0;">
+                            <i class="fas fa-chart-pie"></i>
+                            <p>No tasks added yet</p>
+                        </div>
+                    `;
+                    return;
+                }
+
+                // Count tasks by category
+                const categoryCounts = {};
+                this.tasks.forEach(task => {
+                    categoryCounts[task.category] = (categoryCounts[task.category] || 0) + 1;
+                });
+
+                // Create category items
+                let categoryHTML = '';
+                for (const [category, count] of Object.entries(categoryCounts)) {
+                    categoryHTML += `
+                        <div class="category-item">
+                            <div class="category-name">
+                                <i class="fas fa-folder"></i>
+                                <span>${category}</span>
+                            </div>
+                            <div class="category-count">${count}</div>
+                        </div>
+                    `;
+                }
+
+                categoryBreakdown.innerHTML = categoryHTML;
+            }
+
+            // Setup event listeners for UI interactions
+            setupEventListeners() {
+                // Date navigation
+                document.getElementById('prevDayBtn').addEventListener('click', () => {
+                    this.currentDate.setDate(this.currentDate.getDate() - 1);
+                    this.updateDateDisplay();
+                    this.loadTasks();
+                });
+
+                document.getElementById('nextDayBtn').addEventListener('click', () => {
+                    this.currentDate.setDate(this.currentDate.getDate() + 1);
+                    this.updateDateDisplay();
+                    this.loadTasks();
+                });
+
+                // Date picker
+                document.getElementById('datePicker').addEventListener('change', (e) => {
+                    const selectedDate = new Date(e.target.value);
+                    this.currentDate = selectedDate;
+                    this.updateDateDisplay();
+                    this.loadTasks();
+                });
+
+                // Percentage slider in form
+                const percentageSlider = document.getElementById('taskPercentage');
+                const percentageValue = document.getElementById('percentageValue');
+
+                percentageSlider.addEventListener('input', (e) => {
+                    percentageValue.textContent = `${e.target.value}%`;
+                });
+
+                // Add task button
+                document.getElementById('addTaskBtn').addEventListener('click', () => {
+                    const title = document.getElementById('taskTitle').value.trim();
+                    const description = document.getElementById('taskDescription').value.trim();
+                    const category = document.getElementById('taskCategory').value;
+                    const priority = document.getElementById('taskPriority').value;
+                    const percentage = document.getElementById('taskPercentage').value;
+
+                    if (!title) {
+                        alert('Please enter a task title');
+                        return;
+                    }
+
+                    this.addTask({
+                        title,
+                        description,
+                        category,
+                        priority,
+                        percentage
+                    });
+                });
+
+                // Enter key to add task
+                document.getElementById('taskTitle').addEventListener('keypress', (e) => {
+                    if (e.key === 'Enter') {
+                        document.getElementById('addTaskBtn').click();
+                    }
+                });
+
+                // Day management buttons
+                document.getElementById('copyPreviousBtn').addEventListener('click', () => {
+                    this.copyPreviousDayTasks();
+                });
+
+                document.getElementById('markAllCompleteBtn').addEventListener('click', () => {
+                    this.markAllComplete();
+                });
+
+                document.getElementById('clearTasksBtn').addEventListener('click', () => {
+                    this.clearTasks();
+                });
+            }
+
+            // Add event listeners for dynamically created task elements
+            addTaskEventListeners() {
+                // Delete task buttons
+                document.querySelectorAll('.delete-task').forEach(button => {
+                    button.addEventListener('click', (e) => {
+                        const taskId = e.currentTarget.getAttribute('data-task-id');
+                        this.deleteTask(taskId);
+                    });
+                });
+
+                // Progress sliders for each task
+                document.querySelectorAll('.task-progress-slider').forEach(slider => {
+                    slider.addEventListener('input', (e) => {
+                        const taskId = e.target.getAttribute('data-task-id');
+                        const newPercentage = e.target.value;
+
+                        // Update the percentage text
+                        const percentageElement = e.target.closest('.progress-container').querySelector('.progress-percentage');
+                        percentageElement.textContent = `${newPercentage}%`;
+
+                        // Update the progress bar
+                        const progressFill = e.target.closest('.progress-container').querySelector('.progress-fill');
+                        progressFill.style.width = `${newPercentage}%`;
+
+                        // Update the task in the data model
+                        this.updateTaskProgress(taskId, newPercentage);
+                    });
+                });
+            }
+        }
+
+        // Initialize the application when the page loads
+        document.addEventListener('DOMContentLoaded', () => {
+            const tracker = new DevelopmentTaskTracker();
+
+            // Make tracker available globally for debugging
+            window.tracker = tracker;
+        });
+    </script>
+</body>
+
+</html>

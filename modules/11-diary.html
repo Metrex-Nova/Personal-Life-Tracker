@@ -1,0 +1,1197 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PLT-2026 - Daily Diary</title>
+    <!-- jsPDF for PDF export -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script>
+        window.jsPDF = window.jspdf.jsPDF;
+    </script>
+    <style>
+        /* CSS Reset and Base */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --bg-primary: #000000;
+            --bg-secondary: #111111;
+            --bg-card: #0a0a0a;
+            --text-primary: #ffffff;
+            --text-heading: #ffffff;
+            --text-muted: #888888;
+            --border-color: #333333;
+            --border-active: #555555;
+            --shadow-light: rgba(255, 255, 255, 0.05);
+            --shadow-heavy: rgba(255, 255, 255, 0.02);
+            --accent: #ffffff;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            min-height: 100vh;
+            line-height: 1.6;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+        }
+
+        .container {
+            display: grid;
+            grid-template-columns: 300px 1fr;
+            gap: 20px;
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        /* Header */
+        .header {
+            grid-column: 1 / -1;
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+
+        .header-title {
+            font-size: 1.8rem;
+            color: var(--text-heading);
+            margin-bottom: 8px;
+            font-weight: 300;
+            letter-spacing: -0.5px;
+        }
+
+        .date-display {
+            font-size: 1rem;
+            color: var(--text-muted);
+            font-weight: 300;
+        }
+
+        .date-navigation {
+            display: flex;
+            gap: 10px;
+            margin-top: 15px;
+        }
+
+        /* Buttons */
+        .btn {
+            padding: 10px 20px;
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            background: var(--bg-secondary);
+            color: var(--text-primary);
+            cursor: pointer;
+            font-size: 0.9rem;
+            transition: all 0.2s ease;
+            font-weight: 400;
+        }
+
+        .btn:hover {
+            background: #1a1a1a;
+            border-color: var(--border-active);
+        }
+
+        .btn-primary {
+            background: var(--text-primary);
+            color: var(--bg-primary);
+            border: none;
+            font-weight: 500;
+        }
+
+        .btn-primary:hover {
+            background: #e0e0e0;
+        }
+
+        .btn-warning {
+            background: transparent;
+            color: var(--text-primary);
+            border: 1px solid var(--border-color);
+        }
+
+        .btn-warning:hover {
+            background: #1a1a1a;
+        }
+
+        .btn-success {
+            background: transparent;
+            color: var(--text-primary);
+            border: 1px solid var(--border-color);
+        }
+
+        .btn-success:hover {
+            background: #1a1a1a;
+        }
+
+        /* Left Column */
+        .left-column {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .calendar-card, .export-card, .entries-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 20px;
+        }
+
+        .card-title {
+            font-size: 1rem;
+            color: var(--text-heading);
+            margin-bottom: 15px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid var(--border-color);
+            font-weight: 500;
+            letter-spacing: -0.3px;
+        }
+
+        /* Calendar */
+        .calendar {
+            width: 100%;
+        }
+
+        .calendar-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+
+        .calendar-header h4 {
+            font-weight: 500;
+            color: var(--text-heading);
+        }
+
+        .calendar-grid {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            gap: 5px;
+        }
+
+        .calendar-day {
+            text-align: center;
+            padding: 8px 5px;
+            font-size: 0.8rem;
+            color: var(--text-muted);
+            font-weight: 400;
+        }
+
+        .calendar-date {
+            text-align: center;
+            padding: 10px 5px;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            font-size: 0.9rem;
+            border: 1px solid transparent;
+        }
+
+        .calendar-date:hover {
+            background: var(--bg-secondary);
+            border-color: var(--border-color);
+        }
+
+        .calendar-date.active {
+            background: var(--text-primary);
+            color: var(--bg-primary);
+            font-weight: 500;
+            border: 1px solid var(--text-primary);
+        }
+
+        .calendar-date.has-entry {
+            position: relative;
+            border-color: var(--text-muted);
+        }
+
+        .calendar-date.today {
+            border: 1px solid var(--text-primary);
+        }
+
+        /* Date Range */
+        .date-range {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .date-input-group {
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+        }
+
+        .date-input-group label {
+            font-size: 0.85rem;
+            color: var(--text-muted);
+        }
+
+        .date-input {
+            padding: 8px 12px;
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            font-size: 0.9rem;
+        }
+
+        /* Entries List */
+        .entries-list {
+            max-height: 400px;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .entry-item {
+            background: var(--bg-primary);
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            padding: 12px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .entry-item:hover {
+            background: var(--bg-secondary);
+            border-color: var(--border-active);
+        }
+
+        .entry-item.active {
+            background: var(--bg-secondary);
+            border-color: var(--text-primary);
+        }
+
+        .entry-date {
+            font-weight: 500;
+            color: var(--text-heading);
+            margin-bottom: 4px;
+            font-size: 0.9rem;
+        }
+
+        .entry-preview {
+            font-size: 0.85rem;
+            color: var(--text-muted);
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+            margin-bottom: 8px;
+            line-height: 1.4;
+        }
+
+        .entry-meta {
+            display: flex;
+            justify-content: space-between;
+            font-size: 0.75rem;
+            color: var(--text-muted);
+        }
+
+        /* Center Column - Editor */
+        .center-column {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .editor-card {
+            flex: 1;
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .editor-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .editor-title {
+            font-size: 1.1rem;
+            color: var(--text-heading);
+            font-weight: 400;
+        }
+
+        .editor-stats {
+            display: flex;
+            gap: 15px;
+            font-size: 0.85rem;
+            color: var(--text-muted);
+        }
+
+        .editor-content {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+        }
+
+        #diaryText {
+            flex: 1;
+            background: transparent;
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            padding: 20px;
+            color: var(--text-primary);
+            font-size: 0.95rem;
+            line-height: 1.8;
+            resize: none;
+            font-family: inherit;
+            transition: all 0.2s ease;
+        }
+
+        #diaryText:focus {
+            outline: none;
+            border-color: var(--text-primary);
+        }
+
+        .editor-footer {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 20px;
+            padding-top: 15px;
+            border-top: 1px solid var(--border-color);
+        }
+
+        .save-status {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 0.85rem;
+            color: var(--text-muted);
+        }
+
+        .status-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: var(--text-muted);
+        }
+
+        .status-dot.saved {
+            background: var(--text-primary);
+        }
+
+        .editor-actions {
+            display: flex;
+            gap: 10px;
+        }
+
+        /* Mobile Responsive */
+        @media (max-width: 1024px) {
+            .container {
+                grid-template-columns: 1fr;
+            }
+            
+            .left-column {
+                order: 2;
+            }
+            
+            .center-column {
+                order: 1;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                padding: 10px;
+            }
+            
+            .editor-header {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 10px;
+            }
+            
+            .editor-stats {
+                width: 100%;
+                justify-content: space-between;
+            }
+            
+            .date-navigation {
+                flex-wrap: wrap;
+            }
+            
+            .btn {
+                padding: 8px 16px;
+                font-size: 0.85rem;
+            }
+        }
+
+        /* Scrollbar Styling */
+        ::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: var(--bg-primary);
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: var(--border-color);
+            border-radius: 3px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: var(--border-active);
+        }
+
+        /* Loading Animation */
+        .loading {
+            display: inline-block;
+            width: 16px;
+            height: 16px;
+            border: 2px solid var(--border-color);
+            border-radius: 50%;
+            border-top-color: var(--text-primary);
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        /* PDF Export Modal */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.95);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal-content {
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 30px;
+            max-width: 400px;
+            width: 90%;
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .modal-title {
+            font-size: 1.1rem;
+            color: var(--text-heading);
+            font-weight: 400;
+        }
+
+        .close-modal {
+            background: none;
+            border: none;
+            color: var(--text-muted);
+            font-size: 1.5rem;
+            cursor: pointer;
+            padding: 5px;
+            line-height: 1;
+        }
+
+        .export-progress {
+            margin-top: 20px;
+            display: none;
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 2px;
+            background: var(--border-color);
+            border-radius: 1px;
+            overflow: hidden;
+            margin-top: 10px;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: var(--text-primary);
+            width: 0%;
+            transition: width 0.3s ease;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Header -->
+        <header class="header">
+            <h1 class="header-title">Daily Diary</h1>
+            <div class="date-display" id="currentDateDisplay">Loading...</div>
+            <div class="date-navigation">
+                <button class="btn" id="prevDay">← Previous Day</button>
+                <button class="btn btn-primary" id="todayBtn">Today</button>
+                <button class="btn" id="nextDay">Next Day →</button>
+                <button class="btn btn-warning" id="deleteEntry">Delete Entry</button>
+            </div>
+        </header>
+
+        <!-- Left Column -->
+        <div class="left-column">
+            <!-- Calendar -->
+            <div class="calendar-card">
+                <h3 class="card-title">Calendar</h3>
+                <div class="calendar" id="calendarPicker"></div>
+            </div>
+
+            <!-- PDF Export -->
+            <div class="export-card">
+                <h3 class="card-title">Export to PDF</h3>
+                <div class="date-range">
+                    <div class="date-input-group">
+                        <label for="startDate">Start Date:</label>
+                        <input type="date" id="startDate" class="date-input">
+                    </div>
+                    <div class="date-input-group">
+                        <label for="endDate">End Date:</label>
+                        <input type="date" id="endDate" class="date-input">
+                    </div>
+                    <button class="btn btn-success" id="exportPdf">Export Selected Range</button>
+                </div>
+            </div>
+
+            <!-- Entries List -->
+            <div class="entries-card">
+                <h3 class="card-title">Recent Entries</h3>
+                <div class="entries-list" id="entriesList"></div>
+            </div>
+        </div>
+
+        <!-- Center Column - Editor -->
+        <div class="center-column">
+            <div class="editor-card">
+                <div class="editor-header">
+                    <h2 class="editor-title" id="editorDate">Select a Date</h2>
+                    <div class="editor-stats">
+                        <span id="wordCount">Words: 0</span>
+                        <span id="charCount">Characters: 0</span>
+                        <span id="lastEdited">Last edited: Never</span>
+                    </div>
+                </div>
+                
+                <div class="editor-content">
+                    <textarea 
+                        id="diaryText" 
+                        placeholder="Start writing your diary entry here..."
+                        rows="20"
+                    ></textarea>
+                </div>
+                
+                <div class="editor-footer">
+                    <div class="save-status">
+                        <div class="status-dot" id="saveStatus"></div>
+                        <span id="saveText">Auto-save enabled (every 3 seconds)</span>
+                    </div>
+                    <div class="editor-actions">
+                        <button class="btn" id="clearEditor">Clear</button>
+                        <button class="btn btn-primary" id="saveNow">Save Now</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- PDF Export Modal -->
+    <div class="modal" id="pdfModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 class="modal-title">Exporting PDF</h3>
+                <button class="close-modal" id="closeModal">&times;</button>
+            </div>
+            <p>Generating your PDF document. This may take a moment...</p>
+            <div class="export-progress" id="exportProgress">
+                <p>Processing entries: <span id="progressText">0%</span></p>
+                <div class="progress-bar">
+                    <div class="progress-fill" id="progressFill"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Main Application State
+        class DiaryApp {
+            constructor() {
+                this.currentDate = new Date();
+                this.diaryEntries = this.loadEntries();
+                this.autoSaveTimer = null;
+                this.isSaving = false;
+                this.lastSavedContent = '';
+                
+                this.init();
+            }
+
+            // Initialize the application
+            init() {
+                this.initElements();
+                this.initEventListeners();
+                this.updateDisplay();
+                this.renderCalendar();
+                this.renderEntriesList();
+            }
+
+            // Load entries from localStorage
+            loadEntries() {
+                const entries = {};
+                for (let i = 0; i < localStorage.length; i++) {
+                    const key = localStorage.key(i);
+                    if (key.startsWith('diary_entry_')) {
+                        try {
+                            entries[key.replace('diary_entry_', '')] = JSON.parse(localStorage.getItem(key));
+                        } catch (e) {
+                            console.error('Error loading entry:', key, e);
+                        }
+                    }
+                }
+                return entries;
+            }
+
+            // Save entry to localStorage
+            saveEntry(date, content) {
+                const dateKey = this.formatDate(date);
+                const wordCount = this.countWords(content);
+                const charCount = content.length;
+                const now = new Date().toISOString();
+                
+                const entry = {
+                    id: dateKey,
+                    date: dateKey,
+                    content: content,
+                    wordCount: wordCount,
+                    characterCount: charCount,
+                    created: this.diaryEntries[dateKey]?.created || now,
+                    lastEdited: now
+                };
+                
+                this.diaryEntries[dateKey] = entry;
+                localStorage.setItem(`diary_entry_${dateKey}`, JSON.stringify(entry));
+                return entry;
+            }
+
+            // Delete entry
+            deleteEntry(date) {
+                const dateKey = this.formatDate(date);
+                delete this.diaryEntries[dateKey];
+                localStorage.removeItem(`diary_entry_${dateKey}`);
+            }
+
+            // Get entry for date
+            getEntry(date) {
+                return this.diaryEntries[this.formatDate(date)];
+            }
+
+            // Format date as YYYY-MM-DD
+            formatDate(date) {
+                const d = new Date(date);
+                return d.toISOString().split('T')[0];
+            }
+
+            // Count words in text
+            countWords(text) {
+                return text.trim().split(/\s+/).filter(word => word.length > 0).length;
+            }
+
+            // Initialize DOM elements
+            initElements() {
+                this.elements = {
+                    currentDateDisplay: document.getElementById('currentDateDisplay'),
+                    editorDate: document.getElementById('editorDate'),
+                    diaryText: document.getElementById('diaryText'),
+                    wordCount: document.getElementById('wordCount'),
+                    charCount: document.getElementById('charCount'),
+                    lastEdited: document.getElementById('lastEdited'),
+                    saveStatus: document.getElementById('saveStatus'),
+                    saveText: document.getElementById('saveText'),
+                    saveNow: document.getElementById('saveNow'),
+                    clearEditor: document.getElementById('clearEditor'),
+                    prevDay: document.getElementById('prevDay'),
+                    nextDay: document.getElementById('nextDay'),
+                    todayBtn: document.getElementById('todayBtn'),
+                    deleteEntry: document.getElementById('deleteEntry'),
+                    calendarPicker: document.getElementById('calendarPicker'),
+                    startDate: document.getElementById('startDate'),
+                    endDate: document.getElementById('endDate'),
+                    exportPdf: document.getElementById('exportPdf'),
+                    entriesList: document.getElementById('entriesList'),
+                    pdfModal: document.getElementById('pdfModal'),
+                    exportProgress: document.getElementById('exportProgress'),
+                    progressText: document.getElementById('progressText'),
+                    progressFill: document.getElementById('progressFill'),
+                    closeModal: document.getElementById('closeModal')
+                };
+
+                // Set default date range (last 30 days to today)
+                const endDate = new Date();
+                const startDate = new Date();
+                startDate.setDate(startDate.getDate() - 30);
+                
+                this.elements.startDate.value = this.formatDate(startDate);
+                this.elements.endDate.value = this.formatDate(endDate);
+                this.elements.startDate.max = this.formatDate(endDate);
+                this.elements.endDate.max = this.formatDate(endDate);
+                this.elements.endDate.min = this.formatDate(startDate);
+            }
+
+            // Initialize event listeners
+            initEventListeners() {
+                // Date navigation
+                this.elements.prevDay.addEventListener('click', () => this.changeDate(-1));
+                this.elements.nextDay.addEventListener('click', () => this.changeDate(1));
+                this.elements.todayBtn.addEventListener('click', () => this.goToToday());
+
+                // Editor events
+                this.elements.diaryText.addEventListener('input', (e) => this.handleTextInput(e));
+                this.elements.saveNow.addEventListener('click', () => this.saveCurrentEntry(true));
+                this.elements.clearEditor.addEventListener('click', () => this.clearEditor());
+                this.elements.deleteEntry.addEventListener('click', () => this.deleteCurrentEntry());
+
+                // PDF export
+                this.elements.exportPdf.addEventListener('click', () => this.exportToPDF());
+                this.elements.closeModal.addEventListener('click', () => this.hideModal());
+
+                // Date range validation
+                this.elements.startDate.addEventListener('change', (e) => {
+                    this.elements.endDate.min = e.target.value;
+                });
+
+                this.elements.endDate.addEventListener('change', (e) => {
+                    this.elements.startDate.max = e.target.value;
+                });
+
+                // Close modal on background click
+                window.addEventListener('click', (e) => {
+                    if (e.target === this.elements.pdfModal) {
+                        this.hideModal();
+                    }
+                });
+            }
+
+            // Change current date by offset
+            changeDate(offset) {
+                this.currentDate.setDate(this.currentDate.getDate() + offset);
+                this.updateDisplay();
+                this.renderCalendar();
+            }
+
+            // Go to today's date
+            goToToday() {
+                this.currentDate = new Date();
+                this.updateDisplay();
+                this.renderCalendar();
+            }
+
+            // Update all displays
+            updateDisplay() {
+                const dateKey = this.formatDate(this.currentDate);
+                const entry = this.getEntry(this.currentDate);
+                
+                // Update date displays
+                const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
+                this.elements.currentDateDisplay.textContent = this.currentDate.toLocaleDateString('en-US', options);
+                this.elements.editorDate.textContent = `Entry for ${this.currentDate.toLocaleDateString('en-US', options)}`;
+                
+                // Update editor content
+                this.elements.diaryText.value = entry?.content || '';
+                this.lastSavedContent = this.elements.diaryText.value;
+                
+                // Update stats
+                this.updateStats();
+                
+                // Update save status
+                this.updateSaveStatus(true);
+                
+                // Render entries list with current entry active
+                this.renderEntriesList();
+            }
+
+            // Update word/character counts
+            updateStats() {
+                const content = this.elements.diaryText.value;
+                const words = this.countWords(content);
+                const chars = content.length;
+                
+                this.elements.wordCount.textContent = `Words: ${words}`;
+                this.elements.charCount.textContent = `Characters: ${chars}`;
+                
+                const entry = this.getEntry(this.currentDate);
+                if (entry?.lastEdited) {
+                    const lastEdited = new Date(entry.lastEdited);
+                    this.elements.lastEdited.textContent = `Last edited: ${lastEdited.toLocaleString()}`;
+                }
+            }
+
+            // Handle text input with auto-save
+            handleTextInput(e) {
+                this.updateStats();
+                this.updateSaveStatus(false);
+                this.scheduleAutoSave();
+            }
+
+            // Schedule auto-save
+            scheduleAutoSave() {
+                if (this.autoSaveTimer) {
+                    clearTimeout(this.autoSaveTimer);
+                }
+                
+                this.autoSaveTimer = setTimeout(() => {
+                    this.saveCurrentEntry(false);
+                }, 3000); // 3 second debounce
+            }
+
+            // Save current entry
+            saveCurrentEntry(manual = false) {
+                const content = this.elements.diaryText.value;
+                const dateKey = this.formatDate(this.currentDate);
+                
+                if (content === this.lastSavedContent && !manual) {
+                    return; // No changes
+                }
+                
+                this.isSaving = true;
+                const entry = this.saveEntry(this.currentDate, content);
+                this.lastSavedContent = content;
+                
+                if (manual) {
+                    this.showSaveIndicator('Saved successfully!', 'success');
+                } else {
+                    this.showSaveIndicator('Auto-saved', 'success');
+                }
+                
+                this.updateSaveStatus(true);
+                this.isSaving = false;
+                
+                // Update entries list
+                this.renderEntriesList();
+                this.renderCalendar();
+            }
+
+            // Update save status indicator
+            updateSaveStatus(saved = true) {
+                const statusDot = this.elements.saveStatus;
+                const saveText = this.elements.saveText;
+                
+                if (saved) {
+                    statusDot.className = 'status-dot saved';
+                    saveText.textContent = 'Auto-save enabled (every 3 seconds)';
+                } else {
+                    statusDot.className = 'status-dot';
+                    saveText.textContent = 'Unsaved changes...';
+                }
+            }
+
+            // Show save indicator
+            showSaveIndicator(message, type = 'info') {
+                const originalText = this.elements.saveText.textContent;
+                this.elements.saveText.textContent = message;
+                
+                setTimeout(() => {
+                    this.elements.saveText.textContent = originalText;
+                }, 2000);
+            }
+
+            // Clear editor
+            clearEditor() {
+                if (this.elements.diaryText.value && 
+                    confirm('Are you sure you want to clear the editor? This will not delete saved entries.')) {
+                    this.elements.diaryText.value = '';
+                    this.updateStats();
+                    this.updateSaveStatus(false);
+                }
+            }
+
+            // Delete current entry
+            deleteCurrentEntry() {
+                const dateKey = this.formatDate(this.currentDate);
+                const entry = this.getEntry(this.currentDate);
+                
+                if (!entry) {
+                    alert('No entry to delete for this date.');
+                    return;
+                }
+                
+                if (confirm(`Are you sure you want to delete the entry for ${dateKey}? This cannot be undone.`)) {
+                    this.deleteEntry(this.currentDate);
+                    this.elements.diaryText.value = '';
+                    this.updateStats();
+                    this.updateSaveStatus(true);
+                    this.renderEntriesList();
+                    this.renderCalendar();
+                    this.showSaveIndicator('Entry deleted', 'warning');
+                }
+            }
+
+            // Render calendar
+            renderCalendar() {
+                const calendar = this.elements.calendarPicker;
+                const today = new Date();
+                const currentMonth = this.currentDate.getMonth();
+                const currentYear = this.currentDate.getFullYear();
+                
+                // Get first day of month
+                const firstDay = new Date(currentYear, currentMonth, 1);
+                const lastDay = new Date(currentYear, currentMonth + 1, 0);
+                const daysInMonth = lastDay.getDate();
+                const startingDay = firstDay.getDay();
+                
+                // Month names
+                const monthNames = [
+                    'January', 'February', 'March', 'April', 'May', 'June',
+                    'July', 'August', 'September', 'October', 'November', 'December'
+                ];
+                
+                // Generate calendar HTML
+                let html = `
+                    <div class="calendar-header">
+                        <h4>${monthNames[currentMonth]} ${currentYear}</h4>
+                        <div>
+                            <button class="btn" onclick="diaryApp.changeMonth(-1)" style="padding: 5px 10px; font-size: 0.8rem;">←</button>
+                            <button class="btn" onclick="diaryApp.changeMonth(1)" style="padding: 5px 10px; font-size: 0.8rem;">→</button>
+                        </div>
+                    </div>
+                    <div class="calendar-grid">
+                        <div class="calendar-day">Sun</div>
+                        <div class="calendar-day">Mon</div>
+                        <div class="calendar-day">Tue</div>
+                        <div class="calendar-day">Wed</div>
+                        <div class="calendar-day">Thu</div>
+                        <div class="calendar-day">Fri</div>
+                        <div class="calendar-day">Sat</div>
+                `;
+                
+                // Add empty cells for days before first day of month
+                for (let i = 0; i < startingDay; i++) {
+                    html += `<div class="calendar-date"></div>`;
+                }
+                
+                // Add days of month
+                const currentDateKey = this.formatDate(this.currentDate);
+                const todayKey = this.formatDate(today);
+                
+                for (let day = 1; day <= daysInMonth; day++) {
+                    const date = new Date(currentYear, currentMonth, day);
+                    const dateKey = this.formatDate(date);
+                    const hasEntry = this.diaryEntries[dateKey];
+                    const isToday = dateKey === todayKey;
+                    const isSelected = dateKey === currentDateKey;
+                    
+                    let className = 'calendar-date';
+                    if (isSelected) className += ' active';
+                    if (hasEntry) className += ' has-entry';
+                    if (isToday) className += ' today';
+                    
+                    html += `
+                        <div class="${className}" 
+                             onclick="diaryApp.selectDate('${dateKey}')"
+                             title="${date.toLocaleDateString()}">
+                            ${day}
+                        </div>
+                    `;
+                }
+                
+                html += '</div>';
+                calendar.innerHTML = html;
+            }
+
+            // Change month
+            changeMonth(offset) {
+                this.currentDate.setMonth(this.currentDate.getMonth() + offset);
+                this.renderCalendar();
+            }
+
+            // Select date from calendar
+            selectDate(dateKey) {
+                this.currentDate = new Date(dateKey);
+                this.updateDisplay();
+            }
+
+            // Render entries list
+            renderEntriesList() {
+                const entriesList = this.elements.entriesList;
+                const currentDateKey = this.formatDate(this.currentDate);
+                
+                // Get all entries sorted by date (newest first)
+                const sortedEntries = Object.values(this.diaryEntries)
+                    .sort((a, b) => new Date(b.date) - new Date(a.date));
+                
+                if (sortedEntries.length === 0) {
+                    entriesList.innerHTML = '<p style="color: var(--text-muted); text-align: center;">No entries yet</p>';
+                    return;
+                }
+                
+                let html = '';
+                sortedEntries.forEach(entry => {
+                    const isActive = entry.date === currentDateKey;
+                    const date = new Date(entry.date);
+                    const preview = entry.content.length > 100 
+                        ? entry.content.substring(0, 100) + '...' 
+                        : entry.content;
+                    
+                    html += `
+                        <div class="entry-item ${isActive ? 'active' : ''}" 
+                             onclick="diaryApp.selectDate('${entry.date}')">
+                            <div class="entry-date">
+                                ${date.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' })}
+                            </div>
+                            <div class="entry-preview">${preview}</div>
+                            <div class="entry-meta">
+                                <span>${entry.wordCount} words</span>
+                                <span>${new Date(entry.lastEdited).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</span>
+                            </div>
+                        </div>
+                    `;
+                });
+                
+                entriesList.innerHTML = html;
+            }
+
+            // Export to PDF
+            async exportToPDF() {
+                const startDate = new Date(this.elements.startDate.value);
+                const endDate = new Date(this.elements.endDate.value);
+                
+                if (startDate > endDate) {
+                    alert('Start date must be before end date');
+                    return;
+                }
+                
+                // Get entries in date range
+                const entriesInRange = Object.values(this.diaryEntries)
+                    .filter(entry => {
+                        const entryDate = new Date(entry.date);
+                        return entryDate >= startDate && entryDate <= endDate;
+                    })
+                    .sort((a, b) => new Date(a.date) - new Date(b.date));
+                
+                if (entriesInRange.length === 0) {
+                    alert('No entries found in the selected date range.');
+                    return;
+                }
+                
+                this.showModal();
+                this.elements.exportProgress.style.display = 'block';
+                
+                // Create PDF
+                const { jsPDF } = window.jspdf;
+                const doc = new jsPDF();
+                
+                // PDF settings
+                const margin = 20;
+                const pageWidth = doc.internal.pageSize.width;
+                const contentWidth = pageWidth - (margin * 2);
+                let yPos = margin;
+                
+                // Header
+                doc.setFontSize(20);
+                doc.setTextColor(32, 201, 176);
+                doc.text('PLT-2026 Daily Diary', margin, yPos);
+                
+                yPos += 10;
+                doc.setFontSize(12);
+                doc.setTextColor(160, 160, 160);
+                doc.text(`Date Range: ${startDate.toLocaleDateString()} to ${endDate.toLocaleDateString()}`, margin, yPos);
+                
+                yPos += 20;
+                
+                // Process entries
+                for (let i = 0; i < entriesInRange.length; i++) {
+                    const entry = entriesInRange[i];
+                    
+                    // Check if we need a new page
+                    if (yPos > doc.internal.pageSize.height - margin) {
+                        doc.addPage();
+                        yPos = margin;
+                    }
+                    
+                    // Update progress
+                    const progress = ((i + 1) / entriesInRange.length) * 100;
+                    this.updateProgress(progress);
+                    
+                    // Entry header
+                    doc.setFontSize(16);
+                    doc.setTextColor(255, 255, 255);
+                    doc.text(`Entry: ${entry.date}`, margin, yPos);
+                    
+                    yPos += 10;
+                    
+                    // Word count
+                    doc.setFontSize(10);
+                    doc.setTextColor(160, 160, 160);
+                    doc.text(`Words: ${entry.wordCount} | Characters: ${entry.characterCount}`, margin, yPos);
+                    
+                    yPos += 10;
+                    
+                    // Entry content
+                    doc.setFontSize(12);
+                    doc.setTextColor(224, 224, 224);
+                    
+                    // Split content into lines
+                    const lines = doc.splitTextToSize(entry.content, contentWidth);
+                    doc.text(lines, margin, yPos);
+                    
+                    yPos += (lines.length * 7) + 20;
+                    
+                    // Add separator line
+                    doc.setDrawColor(80, 80, 80);
+                    doc.line(margin, yPos - 10, pageWidth - margin, yPos - 10);
+                }
+                
+                // Save PDF
+                const fileName = `diary_export_${this.formatDate(startDate)}_to_${this.formatDate(endDate)}.pdf`;
+                doc.save(fileName);
+                
+                // Hide modal after a delay
+                setTimeout(() => {
+                    this.hideModal();
+                    this.elements.exportProgress.style.display = 'none';
+                    this.updateProgress(0);
+                }, 1000);
+            }
+
+            // Show modal
+            showModal() {
+                this.elements.pdfModal.style.display = 'flex';
+            }
+
+            // Hide modal
+            hideModal() {
+                this.elements.pdfModal.style.display = 'none';
+            }
+
+            // Update progress bar
+            updateProgress(percentage) {
+                this.elements.progressFill.style.width = `${percentage}%`;
+                this.elements.progressText.textContent = `${Math.round(percentage)}%`;
+            }
+        }
+
+        // Initialize the app when page loads
+        let diaryApp;
+        document.addEventListener('DOMContentLoaded', () => {
+            diaryApp = new DiaryApp();
+            window.diaryApp = diaryApp; // Make available globally for calendar buttons
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,704 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HABIT TRACKER</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Courier New', monospace;
+        }
+
+        body {
+            background: #000000;
+            color: #ffffff;
+            padding: 20px;
+            font-size: 14px;
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+            border-bottom: 2px solid #ffffff;
+            padding-bottom: 10px;
+        }
+
+        .main-title {
+            font-size: 28px;
+            font-weight: bold;
+            letter-spacing: 1px;
+            color: #ffffff;
+        }
+
+        .month-nav {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+        }
+
+        .current-month {
+            font-size: 18px;
+            font-weight: bold;
+            min-width: 180px;
+            text-align: center;
+            color: #ffffff;
+        }
+
+        .nav-btn {
+            background: #000000;
+            border: 2px solid #ffffff;
+            color: #ffffff;
+            width: 30px;
+            height: 30px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: bold;
+            transition: all 0.2s;
+        }
+
+        .nav-btn:hover {
+            background: #ffffff;
+            color: #000000;
+        }
+
+        .controls {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+
+        .input-field {
+            border: 2px solid #ffffff;
+            background: #000000;
+            color: #ffffff;
+            padding: 8px 12px;
+            font-size: 14px;
+            width: 300px;
+        }
+
+        .input-field::placeholder {
+            color: #999999;
+        }
+
+        .btn {
+            border: 2px solid #ffffff;
+            background: #000000;
+            color: #ffffff;
+            padding: 8px 16px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: bold;
+            transition: all 0.2s;
+        }
+
+        .btn:hover {
+            background: #ffffff;
+            color: #000000;
+        }
+
+        /* OMR Grid */
+        .omr-grid {
+            border: 2px solid #ffffff;
+            overflow-x: auto;
+            margin-top: 20px;
+            background: #000000;
+        }
+
+        .grid-header {
+            display: grid;
+            grid-template-columns: 200px repeat(31, 40px);
+            background: #1a1a1a;
+            border-bottom: 2px solid #ffffff;
+        }
+
+        .habit-header {
+            padding: 10px;
+            font-weight: bold;
+            border-right: 1px solid #333333;
+            color: #ffffff;
+        }
+
+        .day-header {
+            padding: 10px 0;
+            text-align: center;
+            border-right: 1px solid #333333;
+            font-weight: bold;
+            color: #ffffff;
+        }
+
+        .habit-row {
+            display: grid;
+            grid-template-columns: 200px repeat(31, 40px);
+            border-bottom: 1px solid #333333;
+        }
+
+        .habit-row:nth-child(even) {
+            background: #0a0a0a;
+        }
+
+        .habit-row:nth-child(odd) {
+            background: #000000;
+        }
+
+        .habit-info {
+            padding: 10px;
+            border-right: 1px solid #333333;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .habit-name {
+            font-weight: bold;
+            color: #ffffff;
+        }
+
+        .delete-btn {
+            background: #000000;
+            border: 1px solid #ffffff;
+            color: #ffffff;
+            width: 20px;
+            height: 20px;
+            cursor: pointer;
+            font-size: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s;
+        }
+
+        .delete-btn:hover {
+            background: #ffffff;
+            color: #000000;
+        }
+
+        /* OMR Bubbles */
+        .bubble-cell {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-right: 1px solid #333333;
+            position: relative;
+        }
+
+        .omr-bubble {
+            width: 24px;
+            height: 24px;
+            border: 2px solid #ffffff;
+            border-radius: 50%;
+            cursor: pointer;
+            transition: all 0.1s;
+            background: #000000;
+        }
+
+        .omr-bubble.filled {
+            background: #ffffff;
+        }
+
+        .omr-bubble:hover {
+            transform: scale(1.1);
+            border-color: #cccccc;
+        }
+
+        .today {
+            background: #333333;
+            font-weight: bold;
+        }
+
+        .weekend {
+            color: #999999;
+        }
+
+        .future .omr-bubble {
+            border-color: #333333;
+            cursor: not-allowed;
+        }
+
+        .future .omr-bubble:hover {
+            transform: none;
+            border-color: #333333;
+        }
+
+        /* Footer */
+        .footer {
+            margin-top: 30px;
+            padding-top: 20px;
+            border-top: 2px solid #ffffff;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .stats {
+            display: flex;
+            gap: 30px;
+        }
+
+        .stat-item {
+            text-align: center;
+        }
+
+        .stat-value {
+            font-size: 24px;
+            font-weight: bold;
+            display: block;
+            color: #ffffff;
+        }
+
+        .stat-label {
+            font-size: 12px;
+            color: #999999;
+        }
+
+        /* Scrollbar Styling */
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: #1a1a1a;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: #333333;
+            border-radius: 4px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: #555555;
+        }
+
+        /* Responsive Design */
+        @media (max-width: 1200px) {
+            .controls {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+            
+            .input-field {
+                width: 100%;
+                max-width: 400px;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .header {
+                flex-direction: column;
+                gap: 20px;
+                align-items: flex-start;
+            }
+            
+            .month-nav {
+                align-self: flex-start;
+            }
+            
+            .grid-header,
+            .habit-row {
+                grid-template-columns: 150px repeat(31, 35px);
+            }
+            
+            .habit-header {
+                padding: 8px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <div class="main-title">HABIT TRACKER</div>
+            <div class="month-nav">
+                <button class="nav-btn" id="prev-month">←</button>
+                <div class="current-month" id="current-month">JANUARY 2024</div>
+                <button class="nav-btn" id="next-month">→</button>
+            </div>
+        </div>
+
+        <div class="controls">
+            <input type="text" class="input-field" id="habit-input" placeholder="ENTER NEW HABIT">
+            <button class="btn" id="add-habit">ADD HABIT</button>
+            <button class="btn" id="check-today">CHECK TODAY</button>
+            <button class="btn" id="uncheck-today">UNCECK TODAY</button>
+        </div>
+
+        <div class="omr-grid" id="omr-grid">
+            <!-- Grid will be populated by JavaScript -->
+        </div>
+
+        <div class="footer">
+            <div class="stats">
+                <div class="stat-item">
+                    <span class="stat-value" id="total-habits">0</span>
+                    <span class="stat-label">HABITS</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-value" id="today-completed">0</span>
+                    <span class="stat-label">TODAY</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-value" id="current-streak">0</span>
+                    <span class="stat-label">STREAK</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Data structure
+        let habitData = {
+            habits: [],
+            completions: {}
+        };
+
+        // Current state
+        let currentMonth = new Date().getMonth();
+        let currentYear = new Date().getFullYear();
+        const today = new Date();
+
+        // Load data from localStorage
+        function loadData() {
+            const savedData = localStorage.getItem('omr-habit-tracker');
+            if (savedData) {
+                habitData = JSON.parse(savedData);
+            } else {
+                createSampleData();
+            }
+        }
+
+        // Save data
+        function saveData() {
+            localStorage.setItem('omr-habit-tracker', JSON.stringify(habitData));
+            updateStats();
+        }
+
+        // Create sample data
+        function createSampleData() {
+            const sampleHabits = [
+                { id: '1', name: 'MORNING MEDITATION', createdAt: '2024-01-15' },
+                { id: '2', name: 'EXERCISE 30 MIN', createdAt: '2024-01-10' },
+                { id: '3', name: 'READ 20 PAGES', createdAt: '2024-01-05' },
+                { id: '4', name: 'PLAN NEXT DAY', createdAt: '2024-01-20' },
+                { id: '5', name: 'NO SUGAR', createdAt: '2024-02-01' }
+            ];
+
+            habitData.habits = sampleHabits;
+            
+            // Create sample completions
+            for (let i = 0; i < 31; i++) {
+                const date = new Date(today);
+                date.setDate(today.getDate() - i);
+                const dateStr = formatDate(date);
+                
+                sampleHabits.forEach(habit => {
+                    if (Math.random() > 0.3) {
+                        const key = `${habit.id}_${dateStr}`;
+                        habitData.completions[key] = {
+                            habitId: habit.id,
+                            date: dateStr,
+                            completed: true
+                        };
+                    }
+                });
+            }
+            
+            saveData();
+        }
+
+        // Format date as YYYY-MM-DD
+        function formatDate(date) {
+            return date.toISOString().split('T')[0];
+        }
+
+        // Update month display
+        function updateMonthDisplay() {
+            const monthNames = ['JANUARY', 'FEBRUARY', 'MARCH', 'APRIL', 'MAY', 'JUNE', 
+                                'JULY', 'AUGUST', 'SEPTEMBER', 'OCTOBER', 'NOVEMBER', 'DECEMBER'];
+            document.getElementById('current-month').textContent = `${monthNames[currentMonth]} ${currentYear}`;
+        }
+
+        // Render OMR grid
+        function renderOMRGrid() {
+            const grid = document.getElementById('omr-grid');
+            grid.innerHTML = '';
+
+            // Create header
+            const header = document.createElement('div');
+            header.className = 'grid-header';
+            
+            const habitHeader = document.createElement('div');
+            habitHeader.className = 'habit-header';
+            habitHeader.textContent = 'HABIT';
+            header.appendChild(habitHeader);
+
+            // Add day headers
+            const daysInMonth = new Date(currentYear, currentMonth + 1, 0).getDate();
+            
+            for (let day = 1; day <= daysInMonth; day++) {
+                const dayHeader = document.createElement('div');
+                dayHeader.className = 'day-header';
+                dayHeader.textContent = day;
+                
+                const date = new Date(currentYear, currentMonth, day);
+                if (date.getDate() === today.getDate() && 
+                    date.getMonth() === today.getMonth() && 
+                    date.getFullYear() === today.getFullYear()) {
+                    dayHeader.classList.add('today');
+                }
+                
+                if (date.getDay() === 0 || date.getDay() === 6) {
+                    dayHeader.classList.add('weekend');
+                }
+                
+                header.appendChild(dayHeader);
+            }
+            
+            grid.appendChild(header);
+
+            // Create habit rows
+            habitData.habits.forEach(habit => {
+                const row = document.createElement('div');
+                row.className = 'habit-row';
+                row.dataset.id = habit.id;
+
+                // Habit info cell
+                const habitInfo = document.createElement('div');
+                habitInfo.className = 'habit-info';
+                habitInfo.innerHTML = `
+                    <span class="habit-name">${habit.name}</span>
+                    <button class="delete-btn" data-id="${habit.id}">×</button>
+                `;
+                row.appendChild(habitInfo);
+
+                // Add OMR bubbles for each day
+                for (let day = 1; day <= daysInMonth; day++) {
+                    const date = new Date(currentYear, currentMonth, day);
+                    const dateStr = `${currentYear}-${String(currentMonth + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+                    
+                    const bubbleCell = document.createElement('div');
+                    bubbleCell.className = 'bubble-cell';
+                    
+                    if (date > today) {
+                        bubbleCell.classList.add('future');
+                    }
+                    
+                    const bubble = document.createElement('div');
+                    bubble.className = 'omr-bubble';
+                    
+                    // Check for completion
+                    const key = `${habit.id}_${dateStr}`;
+                    if (habitData.completions[key] && habitData.completions[key].completed) {
+                        bubble.classList.add('filled');
+                    }
+                    
+                    // Add click handler
+                    bubble.addEventListener('click', () => {
+                        if (date > today) return;
+                        toggleCompletion(habit.id, dateStr, bubble);
+                    });
+                    
+                    bubbleCell.appendChild(bubble);
+                    row.appendChild(bubbleCell);
+                }
+                
+                grid.appendChild(row);
+            });
+
+            // Add delete handlers
+            document.querySelectorAll('.delete-btn').forEach(btn => {
+                btn.addEventListener('click', function(e) {
+                    e.stopPropagation();
+                    const habitId = this.getAttribute('data-id');
+                    deleteHabit(habitId);
+                });
+            });
+
+            updateStats();
+        }
+
+        // Toggle completion
+        function toggleCompletion(habitId, dateStr, bubble) {
+            const key = `${habitId}_${dateStr}`;
+            
+            if (habitData.completions[key]) {
+                delete habitData.completions[key];
+                bubble.classList.remove('filled');
+            } else {
+                habitData.completions[key] = {
+                    habitId: habitId,
+                    date: dateStr,
+                    completed: true
+                };
+                bubble.classList.add('filled');
+            }
+            
+            saveData();
+        }
+
+        // Add new habit
+        function addHabit() {
+            const input = document.getElementById('habit-input');
+            const name = input.value.trim().toUpperCase();
+            
+            if (!name) return;
+            
+            const newHabit = {
+                id: 'habit_' + Date.now(),
+                name: name,
+                createdAt: formatDate(new Date())
+            };
+            
+            habitData.habits.push(newHabit);
+            input.value = '';
+            saveData();
+            renderOMRGrid();
+        }
+
+        // Delete habit
+        function deleteHabit(habitId) {
+            if (!confirm('Delete this habit?')) return;
+            
+            habitData.habits = habitData.habits.filter(h => h.id !== habitId);
+            
+            // Remove completions
+            const keysToRemove = [];
+            for (const key in habitData.completions) {
+                if (habitData.completions[key].habitId === habitId) {
+                    keysToRemove.push(key);
+                }
+            }
+            keysToRemove.forEach(key => {
+                delete habitData.completions[key];
+            });
+            
+            saveData();
+            renderOMRGrid();
+        }
+
+        // Check all today
+        function checkAllToday() {
+            const todayStr = formatDate(today);
+            
+            habitData.habits.forEach(habit => {
+                const key = `${habit.id}_${todayStr}`;
+                habitData.completions[key] = {
+                    habitId: habit.id,
+                    date: todayStr,
+                    completed: true
+                };
+            });
+            
+            saveData();
+            renderOMRGrid();
+        }
+
+        // Uncheck all today
+        function uncheckAllToday() {
+            const todayStr = formatDate(today);
+            
+            habitData.habits.forEach(habit => {
+                const key = `${habit.id}_${todayStr}`;
+                delete habitData.completions[key];
+            });
+            
+            saveData();
+            renderOMRGrid();
+        }
+
+        // Calculate streak
+        function calculateStreak() {
+            let maxStreak = 0;
+            
+            habitData.habits.forEach(habit => {
+                let streak = 0;
+                
+                for (let i = 0; i < 365; i++) {
+                    const date = new Date(today);
+                    date.setDate(today.getDate() - i);
+                    const dateStr = formatDate(date);
+                    const key = `${habit.id}_${dateStr}`;
+                    
+                    if (habitData.completions[key] && habitData.completions[key].completed) {
+                        streak++;
+                    } else {
+                        break;
+                    }
+                }
+                
+                if (streak > maxStreak) {
+                    maxStreak = streak;
+                }
+            });
+            
+            return maxStreak;
+        }
+
+        // Update stats
+        function updateStats() {
+            document.getElementById('total-habits').textContent = habitData.habits.length;
+            
+            // Today's completions
+            const todayStr = formatDate(today);
+            let todayCompleted = 0;
+            habitData.habits.forEach(habit => {
+                const key = `${habit.id}_${todayStr}`;
+                if (habitData.completions[key] && habitData.completions[key].completed) {
+                    todayCompleted++;
+                }
+            });
+            document.getElementById('today-completed').textContent = todayCompleted;
+            
+            // Current streak
+            document.getElementById('current-streak').textContent = calculateStreak();
+        }
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', function() {
+            loadData();
+            updateMonthDisplay();
+            renderOMRGrid();
+            
+            // Event listeners
+            document.getElementById('add-habit').addEventListener('click', addHabit);
+            document.getElementById('habit-input').addEventListener('keypress', function(e) {
+                if (e.key === 'Enter') addHabit();
+            });
+            
+            document.getElementById('check-today').addEventListener('click', checkAllToday);
+            document.getElementById('uncheck-today').addEventListener('click', uncheckAllToday);
+            
+            document.getElementById('prev-month').addEventListener('click', function() {
+                currentMonth--;
+                if (currentMonth < 0) {
+                    currentMonth = 11;
+                    currentYear--;
+                }
+                updateMonthDisplay();
+                renderOMRGrid();
+            });
+            
+            document.getElementById('next-month').addEventListener('click', function() {
+                currentMonth++;
+                if (currentMonth > 11) {
+                    currentMonth = 0;
+                    currentYear++;
+                }
+                updateMonthDisplay();
+                renderOMRGrid();
+            });
+        });
+    </script>
+</body>
+</html>

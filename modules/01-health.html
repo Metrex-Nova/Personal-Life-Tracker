@@ -1,0 +1,1402 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PLT-2026 Health Tracker</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <style>
+        :root {
+            --bg-primary: linear-gradient(135deg, #0a0a0a 0%, #1a1a1a 100%);
+            --bg-secondary: rgba(40, 40, 40, 0.8);
+            --bg-card: #2d2d2d;
+            --text-primary: #ffffff;
+            --text-secondary: #e0e0e0;
+            --text-muted: #8B7355;
+            --border-color: rgba(255, 255, 255, 0.1);
+            --accent-productive: #20c9b0;
+            --accent-warning: #ffb347;
+            --accent-success: #2ecc71;
+            --shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', system-ui, sans-serif;
+        }
+
+        body {
+            background: var(--bg-primary);
+            color: var(--text-secondary);
+            line-height: 1.6;
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        /* Header Styles */
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 20px 0;
+            margin-bottom: 30px;
+            border-bottom: 1px solid var(--border-color);
+            flex-wrap: wrap;
+            gap: 15px;
+        }
+
+        .header-left {
+            flex: 1;
+        }
+
+        .header h1 {
+            color: var(--text-primary);
+            font-size: 2.2rem;
+            font-weight: 300;
+            letter-spacing: 1px;
+            margin-bottom: 5px;
+        }
+
+        .current-date {
+            color: var(--text-muted);
+            font-size: 1.1rem;
+        }
+
+        .header-controls {
+            display: flex;
+            gap: 15px;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+
+        .date-selector {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+
+        .date-input {
+            background: var(--bg-card);
+            color: var(--text-primary);
+            border: 1px solid var(--border-color);
+            padding: 8px 12px;
+            border-radius: 4px;
+            font-size: 0.9rem;
+        }
+
+        .export-btn {
+            background: var(--bg-card);
+            color: var(--text-primary);
+            border: 1px solid var(--border-color);
+            padding: 10px 20px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+            box-shadow: var(--shadow);
+            white-space: nowrap;
+        }
+
+        .export-btn:hover {
+            background: rgba(45, 45, 45, 0.9);
+            border-color: var(--accent-productive);
+            transform: translateY(-2px);
+        }
+
+        .export-btn-primary {
+            background: rgba(32, 201, 176, 0.2);
+            border-color: var(--accent-productive);
+        }
+
+        /* Calendar Section */
+        .calendar-section {
+            margin-bottom: 25px;
+        }
+
+        .calendar-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+            padding: 0 5px;
+        }
+
+        .calendar-nav {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+
+        .nav-btn {
+            background: var(--bg-card);
+            color: var(--text-primary);
+            border: 1px solid var(--border-color);
+            width: 35px;
+            height: 35px;
+            border-radius: 50%;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s ease;
+        }
+
+        .nav-btn:hover {
+            border-color: var(--accent-productive);
+            background: rgba(45, 45, 45, 0.9);
+        }
+
+        .calendar-grid {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            gap: 5px;
+            background: rgba(40, 40, 40, 0.6);
+            padding: 15px;
+            border-radius: 8px;
+            border: 1px solid var(--border-color);
+        }
+
+        .calendar-day-header {
+            text-align: center;
+            padding: 10px 5px;
+            color: var(--text-muted);
+            font-size: 0.9rem;
+            font-weight: 500;
+        }
+
+        .calendar-day {
+            text-align: center;
+            padding: 12px 5px;
+            background: rgba(30, 30, 30, 0.7);
+            border-radius: 4px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            border: 1px solid transparent;
+            position: relative;
+        }
+
+        .calendar-day:hover {
+            background: rgba(45, 45, 45, 0.9);
+            border-color: rgba(255, 255, 255, 0.2);
+        }
+
+        .calendar-day.selected {
+            background: rgba(32, 201, 176, 0.3);
+            border-color: var(--accent-productive);
+            color: white;
+        }
+
+        .calendar-day.has-data {
+            background: rgba(46, 204, 113, 0.2);
+            border-color: rgba(46, 204, 113, 0.3);
+        }
+
+        .calendar-day.has-data::after {
+            content: '';
+            position: absolute;
+            bottom: 4px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 4px;
+            height: 4px;
+            background: var(--accent-success);
+            border-radius: 50%;
+        }
+
+        .calendar-day.other-month {
+            color: rgba(255, 255, 255, 0.3);
+            background: rgba(30, 30, 30, 0.3);
+        }
+
+        /* Main Content Grid */
+        .main-content {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 25px;
+            margin-bottom: 30px;
+        }
+
+        @media (max-width: 1024px) {
+            .main-content {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+
+        @media (max-width: 768px) {
+            .main-content {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        /* Card Styles */
+        .card {
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: 10px;
+            padding: 20px;
+            box-shadow: var(--shadow);
+            transition: transform 0.3s ease;
+        }
+
+        .card:hover {
+            transform: translateY(-2px);
+            border-color: rgba(255, 255, 255, 0.2);
+        }
+
+        .card h2 {
+            color: var(--text-primary);
+            margin-bottom: 20px;
+            font-size: 1.4rem;
+            font-weight: 400;
+            border-bottom: 1px solid var(--border-color);
+            padding-bottom: 10px;
+        }
+
+        /* Weight Tracking */
+        .weight-display {
+            font-size: 2.5rem;
+            color: var(--accent-productive);
+            margin: 15px 0;
+            text-align: center;
+        }
+
+        .weight-change {
+            text-align: center;
+            font-size: 1.1rem;
+            margin-bottom: 20px;
+        }
+
+        .positive { color: var(--accent-success); }
+        .negative { color: var(--accent-warning); }
+        .neutral { color: var(--text-muted); }
+
+        /* Form Styles */
+        .form-group {
+            margin-bottom: 15px;
+        }
+
+        .form-group label {
+            display: block;
+            color: var(--text-primary);
+            margin-bottom: 8px;
+            font-size: 0.95rem;
+        }
+
+        .form-control {
+            width: 100%;
+            padding: 10px 12px;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            color: var(--text-primary);
+            font-size: 1rem;
+            transition: border-color 0.3s ease;
+        }
+
+        .form-control:focus {
+            outline: none;
+            border-color: var(--accent-productive);
+        }
+
+        .btn {
+            width: 100%;
+            padding: 12px;
+            background: rgba(40, 40, 40, 0.9);
+            color: var(--text-primary);
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+            margin-top: 10px;
+        }
+
+        .btn:hover {
+            background: rgba(60, 60, 60, 0.9);
+            border-color: var(--accent-productive);
+        }
+
+        .btn-primary {
+            background: rgba(32, 201, 176, 0.2);
+            border-color: var(--accent-productive);
+        }
+
+        .btn-primary:hover {
+            background: rgba(32, 201, 176, 0.3);
+        }
+
+        /* List Styles */
+        .item-list {
+            margin-top: 20px;
+            max-height: 300px;
+            overflow-y: auto;
+        }
+
+        .list-item {
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            padding: 12px;
+            margin-bottom: 10px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            transition: all 0.3s ease;
+        }
+
+        .list-item:hover {
+            background: rgba(255, 255, 255, 0.05);
+            border-color: rgba(255, 255, 255, 0.2);
+        }
+
+        .item-info h4 {
+            color: var(--text-primary);
+            margin-bottom: 5px;
+            font-weight: 400;
+        }
+
+        .item-details {
+            color: var(--text-muted);
+            font-size: 0.9rem;
+        }
+
+        .delete-btn {
+            background: rgba(255, 179, 71, 0.1);
+            color: var(--accent-warning);
+            border: 1px solid rgba(255, 179, 71, 0.3);
+            padding: 6px 12px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 0.9rem;
+            transition: all 0.3s ease;
+            white-space: nowrap;
+        }
+
+        .delete-btn:hover {
+            background: rgba(255, 179, 71, 0.2);
+        }
+
+        /* Summary Styles */
+        .summary-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px 0;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .summary-item:last-child {
+            border-bottom: none;
+        }
+
+        .summary-label {
+            color: var(--text-primary);
+        }
+
+        .summary-value {
+            font-size: 1.2rem;
+            font-weight: 500;
+        }
+
+        .calories-gained { color: var(--accent-warning); }
+        .calories-lost { color: var(--accent-success); }
+        .net-positive { color: var(--accent-warning); }
+        .net-negative { color: var(--accent-success); }
+        .net-neutral { color: var(--text-muted); }
+
+        /* Totals Display */
+        .totals {
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 6px;
+            padding: 12px;
+            margin-top: 15px;
+            text-align: center;
+            font-size: 0.9rem;
+        }
+
+        .totals span {
+            color: var(--text-primary);
+            font-weight: 500;
+        }
+
+        /* Date Range Export Section */
+        .date-range-export {
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 15px;
+            margin-top: 20px;
+            display: flex;
+            gap: 15px;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+
+        .date-range-inputs {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+            flex: 1;
+        }
+
+        .date-range-inputs label {
+            color: var(--text-primary);
+            font-size: 0.9rem;
+            white-space: nowrap;
+        }
+        #datePicker::-webkit-calendar-picker-indicator {
+            filter: invert(1);
+            /* Makes the icon white */
+            cursor: pointer;
+            padding: 4px;
+        }
+
+        #datePicker::-webkit-calendar-picker-indicator:hover {
+            opacity: 0.8;
+        }
+
+        /* Mobile Optimizations */
+        @media (max-width: 768px) {
+            .header {
+                flex-direction: column;
+                align-items: stretch;
+            }
+            
+            .header h1 {
+                font-size: 1.8rem;
+            }
+            
+            .header-controls {
+                flex-direction: row;
+            }
+            
+            .date-selector {
+                flex-direction: column;
+                align-items: stretch;
+            }
+            
+            .calendar-grid {
+                gap: 3px;
+                padding: 10px;
+            }
+            
+            .calendar-day {
+                padding: 8px 3px;
+                font-size: 0.9rem;
+            }
+            
+            .card {
+                padding: 15px;
+            }
+            
+            .weight-display {
+                font-size: 2rem;
+            }
+            
+            .date-range-export {
+                flex-direction: column;
+                align-items: stretch;
+            }
+            
+            .date-range-inputs {
+                flex-direction: column;
+                align-items: stretch;
+            }
+        }
+
+        /* Scrollbar Styling */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 4px;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 4px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: rgba(255, 255, 255, 0.3);
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header class="header">
+            <div class="header-left">
+                <h1>PLT-2026 Health Tracker</h1>
+                <div class="current-date" id="currentDate"></div>
+            </div>
+            <div class="header-controls">
+                <div class="date-selector">
+                    <input type="date" id="dateSelector" class="date-input">
+                    <button class="export-btn" id="loadDateData">Load Date</button>
+                </div>
+                <button class="export-btn export-btn-primary" id="exportTodayPdf">Export Today</button>
+            </div>
+        </header>
+
+        <!-- Calendar Section
+        <div class="calendar-section">
+            <div class="calendar-header">
+                <h2 id="calendarMonth"></h2>
+                <div class="calendar-nav">
+                    <button class="nav-btn" id="prevMonth">‹</button>
+                    <button class="nav-btn" id="todayBtn">Today</button>
+                    <button class="nav-btn" id="nextMonth">›</button>
+                </div>
+            </div>
+            <div class="calendar-grid" id="calendarGrid">
+                 Calendar will be generated here 
+            </div>
+        </div> -->
+
+        <main class="main-content">
+            <!-- Left Column: Weight & Summary -->
+            <div class="card">
+                <h2>Weight Tracking</h2>
+                <div class="weight-display" id="currentWeight">-- kg</div>
+                <div class="weight-change" id="weightChange">No previous data</div>
+                
+                <div class="form-group">
+                    <label for="updateWeight">Update Weight (kg)</label>
+                    <input type="number" id="updateWeight" class="form-control" step="0.1" min="0">
+                </div>
+                <button class="btn btn-primary" id="saveWeight">Update Weight</button>
+            </div>
+
+            <!-- Center Column: Meal Tracking -->
+            <div class="card">
+                <h2>Meal Tracking</h2>
+                
+                <form id="mealForm">
+                    <div class="form-group">
+                        <label for="mealName">Meal Name</label>
+                        <input type="text" id="mealName" class="form-control" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="mealCalories">Calories</label>
+                        <input type="number" id="mealCalories" class="form-control" min="0" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="mealWeight">Weight (grams)</label>
+                        <input type="number" id="mealWeight" class="form-control" min="0" required>
+                    </div>
+                    
+                    <button type="submit" class="btn btn-primary">Add Meal</button>
+                </form>
+                
+                <div class="totals">
+                    Total Weight: <span id="totalMealWeight">0</span>g | 
+                    Total Calories: <span id="totalMealCalories">0</span>
+                </div>
+                
+                <div class="item-list" id="mealList">
+                    <!-- Meal items will be added here -->
+                </div>
+            </div>
+
+            <!-- Right Column: Activity Tracking -->
+            <div class="card">
+                <h2>Activity Tracking</h2>
+                
+                <form id="activityForm">
+                    <div class="form-group">
+                        <label for="activityName">Activity Name</label>
+                        <input type="text" id="activityName" class="form-control" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="activityCalories">Calories Burnt</label>
+                        <input type="number" id="activityCalories" class="form-control" min="0" required>
+                    </div>
+                    
+                    <button type="submit" class="btn btn-primary">Add Activity</button>
+                </form>
+                
+                <div class="totals">
+                    Total Calories Burnt: <span id="totalActivityCalories">0</span>
+                </div>
+                
+                <div class="item-list" id="activityList">
+                    <!-- Activity items will be added here -->
+                </div>
+            </div>
+        </main>
+
+        <!-- Daily Summary Card -->
+        <div class="card">
+            <h2>Daily Health Summary</h2>
+            <div class="summary-grid">
+                <div class="summary-item">
+                    <span class="summary-label">Calories Gained (Meals)</span>
+                    <span class="summary-value calories-gained" id="summaryGained">0</span>
+                </div>
+                <div class="summary-item">
+                    <span class="summary-label">Calories Lost (Activities)</span>
+                    <span class="summary-value calories-lost" id="summaryLost">0</span>
+                </div>
+                <div class="summary-item">
+                    <span class="summary-label">Net Calories Today</span>
+                    <span class="summary-value" id="summaryNet">0</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Date Range Export Section -->
+        <div class="date-range-export">
+            <div class="date-range-inputs">
+                <label>Export Range:</label>
+                <input type="date" id="startDate" class="date-input">
+                <span>to</span>
+                <input type="date" id="endDate" class="date-input">
+            </div>
+            <button class="export-btn export-btn-primary" id="exportRangePdf">Export Date Range</button>
+        </div>
+    </div>
+
+    <script>
+        // Global variables
+        let currentSelectedDate = new Date().toISOString().split('T')[0];
+        let calendarCurrentMonth = new Date().getMonth();
+        let calendarCurrentYear = new Date().getFullYear();
+
+        // DOM Elements
+        const currentDateElement = document.getElementById('currentDate');
+        const dateSelector = document.getElementById('dateSelector');
+        const loadDateButton = document.getElementById('loadDateData');
+        const exportTodayButton = document.getElementById('exportTodayPdf');
+        const exportRangeButton = document.getElementById('exportRangePdf');
+        const startDateInput = document.getElementById('startDate');
+        const endDateInput = document.getElementById('endDate');
+        
+        // Weight elements
+        const currentWeightElement = document.getElementById('currentWeight');
+        const weightChangeElement = document.getElementById('weightChange');
+        const updateWeightInput = document.getElementById('updateWeight');
+        const saveWeightButton = document.getElementById('saveWeight');
+        
+        // Meal elements
+        const mealForm = document.getElementById('mealForm');
+        const mealList = document.getElementById('mealList');
+        const totalMealWeightElement = document.getElementById('totalMealWeight');
+        const totalMealCaloriesElement = document.getElementById('totalMealCalories');
+        
+        // Activity elements
+        const activityForm = document.getElementById('activityForm');
+        const activityList = document.getElementById('activityList');
+        const totalActivityCaloriesElement = document.getElementById('totalActivityCalories');
+        
+        // Summary elements
+        const summaryGainedElement = document.getElementById('summaryGained');
+        const summaryLostElement = document.getElementById('summaryLost');
+        const summaryNetElement = document.getElementById('summaryNet');
+        
+        // Calendar elements
+        const calendarMonthElement = document.getElementById('calendarMonth');
+        const calendarGrid = document.getElementById('calendarGrid');
+        const prevMonthButton = document.getElementById('prevMonth');
+        const nextMonthButton = document.getElementById('nextMonth');
+        const todayButton = document.getElementById('todayBtn');
+
+        // Initialize the application
+        document.addEventListener('DOMContentLoaded', function() {
+            // Set current date
+            updateCurrentDateDisplay();
+            
+            // Set default date inputs
+            const today = new Date().toISOString().split('T')[0];
+            dateSelector.value = today;
+            startDateInput.value = today;
+            endDateInput.value = today;
+            
+            // Load data for today
+            loadDateData(currentSelectedDate);
+            
+            // Initialize calendar
+            updateCalendar();
+            
+            // Event listeners
+            saveWeightButton.addEventListener('click', updateWeight);
+            mealForm.addEventListener('submit', addMeal);
+            activityForm.addEventListener('submit', addActivity);
+            loadDateButton.addEventListener('click', loadSelectedDate);
+            exportTodayButton.addEventListener('click', () => exportToPDF(currentSelectedDate, currentSelectedDate));
+            exportRangeButton.addEventListener('click', exportDateRange);
+            
+            // Calendar navigation
+            prevMonthButton.addEventListener('click', () => {
+                calendarCurrentMonth--;
+                if (calendarCurrentMonth < 0) {
+                    calendarCurrentMonth = 11;
+                    calendarCurrentYear--;
+                }
+                updateCalendar();
+            });
+            
+            nextMonthButton.addEventListener('click', () => {
+                calendarCurrentMonth++;
+                if (calendarCurrentMonth > 11) {
+                    calendarCurrentMonth = 0;
+                    calendarCurrentYear++;
+                }
+                updateCalendar();
+            });
+            
+            todayButton.addEventListener('click', () => {
+                const today = new Date();
+                calendarCurrentMonth = today.getMonth();
+                calendarCurrentYear = today.getFullYear();
+                updateCalendar();
+            });
+        });
+
+        // Date Management Functions
+        function updateCurrentDateDisplay() {
+            const today = new Date();
+            const formattedDate = today.toLocaleDateString('en-US', {
+                weekday: 'long',
+                year: 'numeric',
+                month: 'long',
+                day: 'numeric'
+            });
+            currentDateElement.textContent = formattedDate;
+        }
+
+        function loadSelectedDate() {
+            const selectedDate = dateSelector.value;
+            if (selectedDate) {
+                currentSelectedDate = selectedDate;
+                loadDateData(selectedDate);
+                updateCalendar();
+            }
+        }
+
+        function loadDateData(dateString) {
+            const storageKeys = getStorageKeysForDate(dateString);
+            
+            // Update UI to show selected date
+            const date = new Date(dateString);
+            const formattedDate = date.toLocaleDateString('en-US', {
+                weekday: 'long',
+                year: 'numeric',
+                month: 'long',
+                day: 'numeric'
+            });
+            currentDateElement.textContent = formattedDate + " (Selected)";
+            
+            // Load weight data
+            loadWeightDataForDate(dateString);
+            
+            // Load meals and activities
+            loadMealsForDate(dateString);
+            loadActivitiesForDate(dateString);
+            updateSummaryForDate(dateString);
+        }
+
+        function getStorageKeysForDate(dateString) {
+            return {
+                meals: `health_meals_${dateString}`,
+                activities: `health_activities_${dateString}`,
+                weight: 'health_weight',
+                weightHistory: 'health_weight_history'
+            };
+        }
+
+        // Calendar Functions
+        function updateCalendar() {
+            // Clear calendar
+            calendarGrid.innerHTML = '';
+            
+            // Set month title
+            const monthNames = [
+                'January', 'February', 'March', 'April', 'May', 'June',
+                'July', 'August', 'September', 'October', 'November', 'December'
+            ];
+            calendarMonthElement.textContent = `${monthNames[calendarCurrentMonth]} ${calendarCurrentYear}`;
+            
+            // Create day headers
+            const dayHeaders = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+            dayHeaders.forEach(day => {
+                const dayElement = document.createElement('div');
+                dayElement.className = 'calendar-day-header';
+                dayElement.textContent = day;
+                calendarGrid.appendChild(dayElement);
+            });
+            
+            // Get first day of month
+            const firstDay = new Date(calendarCurrentYear, calendarCurrentMonth, 1);
+            const startingDay = firstDay.getDay();
+            
+            // Get days in month
+            const daysInMonth = new Date(calendarCurrentYear, calendarCurrentMonth + 1, 0).getDate();
+            
+            // Get previous month days
+            const prevMonthDays = new Date(calendarCurrentYear, calendarCurrentMonth, 0).getDate();
+            
+            // Add previous month days
+            for (let i = 0; i < startingDay; i++) {
+                const day = prevMonthDays - startingDay + i + 1;
+                const dayElement = createCalendarDay(day, 'other-month', false);
+                calendarGrid.appendChild(dayElement);
+            }
+            
+            // Add current month days
+            const today = new Date().toISOString().split('T')[0];
+            const selectedDate = currentSelectedDate;
+            
+            for (let i = 1; i <= daysInMonth; i++) {
+                const dateStr = `${calendarCurrentYear}-${String(calendarCurrentMonth + 1).padStart(2, '0')}-${String(i).padStart(2, '0')}`;
+                const isToday = dateStr === today;
+                const isSelected = dateStr === selectedDate;
+                const hasData = checkDateHasData(dateStr);
+                
+                let className = 'calendar-day';
+                if (isToday) className += ' today';
+                if (isSelected) className += ' selected';
+                if (hasData) className += ' has-data';
+                
+                const dayElement = createCalendarDay(i, className, true, dateStr);
+                calendarGrid.appendChild(dayElement);
+            }
+            
+            // Add next month days to fill grid
+            const totalCells = 42; // 6 weeks * 7 days
+            const remainingCells = totalCells - (startingDay + daysInMonth);
+            
+            for (let i = 1; i <= remainingCells; i++) {
+                const dayElement = createCalendarDay(i, 'other-month', false);
+                calendarGrid.appendChild(dayElement);
+            }
+        }
+
+        function createCalendarDay(day, className, isCurrentMonth, dateStr = '') {
+            const dayElement = document.createElement('div');
+            dayElement.className = className;
+            dayElement.textContent = day;
+            
+            if (isCurrentMonth && dateStr) {
+                dayElement.dataset.date = dateStr;
+                dayElement.addEventListener('click', () => {
+                    // Remove selected class from all days
+                    document.querySelectorAll('.calendar-day.selected').forEach(el => {
+                        el.classList.remove('selected');
+                    });
+                    
+                    // Add selected class to clicked day
+                    dayElement.classList.add('selected');
+                    
+                    // Load data for this date
+                    currentSelectedDate = dateStr;
+                    dateSelector.value = dateStr;
+                    loadDateData(dateStr);
+                });
+            }
+            
+            return dayElement;
+        }
+
+        function checkDateHasData(dateStr) {
+            const storageKeys = getStorageKeysForDate(dateStr);
+            const meals = JSON.parse(localStorage.getItem(storageKeys.meals) || '[]');
+            const activities = JSON.parse(localStorage.getItem(storageKeys.activities) || '[]');
+            
+            return meals.length > 0 || activities.length > 0;
+        }
+
+        // Weight Management Functions
+        function loadWeightDataForDate(dateString) {
+            const weightHistory = JSON.parse(localStorage.getItem('health_weight_history') || '[]');
+            
+            // Find the most recent weight record up to the selected date
+            const relevantWeights = weightHistory.filter(record => record.date <= dateString);
+            relevantWeights.sort((a, b) => new Date(b.date) - new Date(a.date));
+            
+            if (relevantWeights.length > 0) {
+                const currentWeight = relevantWeights[0].weight;
+                currentWeightElement.textContent = `${currentWeight} kg`;
+                updateWeightInput.value = currentWeight;
+                
+                // Calculate weight change from previous record
+                if (relevantWeights.length > 1) {
+                    const previousWeight = relevantWeights[1].weight;
+                    const change = parseFloat(currentWeight) - parseFloat(previousWeight);
+                    const changeDate = new Date(relevantWeights[1].date);
+                    const formattedDate = changeDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+                    
+                    if (change > 0) {
+                        weightChangeElement.innerHTML = `<span class="positive">+${change.toFixed(1)} kg since ${formattedDate}</span>`;
+                    } else if (change < 0) {
+                        weightChangeElement.innerHTML = `<span class="negative">${change.toFixed(1)} kg since ${formattedDate}</span>`;
+                    } else {
+                        weightChangeElement.innerHTML = `<span class="neutral">No change since ${formattedDate}</span>`;
+                    }
+                } else {
+                    weightChangeElement.innerHTML = `<span class="neutral">No previous data</span>`;
+                }
+            } else {
+                currentWeightElement.textContent = '-- kg';
+                weightChangeElement.innerHTML = `<span class="neutral">No weight data</span>`;
+                updateWeightInput.value = '';
+            }
+        }
+
+        function updateWeight() {
+            const newWeight = parseFloat(updateWeightInput.value);
+            
+            if (isNaN(newWeight) || newWeight <= 0) {
+                alert('Please enter a valid weight');
+                return;
+            }
+            
+            // Update weight history
+            const weightHistory = JSON.parse(localStorage.getItem('health_weight_history') || '[]');
+            
+            // Check if we already have a weight record for today
+            const existingIndex = weightHistory.findIndex(record => record.date === currentSelectedDate);
+            
+            if (existingIndex !== -1) {
+                weightHistory[existingIndex].weight = newWeight;
+                weightHistory[existingIndex].timestamp = new Date().toISOString();
+            } else {
+                weightHistory.push({
+                    date: currentSelectedDate,
+                    weight: newWeight,
+                    timestamp: new Date().toISOString()
+                });
+            }
+            
+            localStorage.setItem('health_weight_history', JSON.stringify(weightHistory));
+            
+            // Update UI
+            loadWeightDataForDate(currentSelectedDate);
+            updateCalendar();
+        }
+
+        // Meal Management Functions
+        function loadMealsForDate(dateString) {
+            const storageKeys = getStorageKeysForDate(dateString);
+            const meals = JSON.parse(localStorage.getItem(storageKeys.meals) || '[]');
+            mealList.innerHTML = '';
+            
+            let totalWeight = 0;
+            let totalCalories = 0;
+            
+            if (meals.length === 0) {
+                mealList.innerHTML = '<div class="list-item"><div class="item-info"><h4>No meals logged</h4></div></div>';
+            } else {
+                // Sort meals by timestamp (newest first)
+                meals.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
+                
+                meals.forEach(meal => {
+                    totalWeight += meal.weight || 0;
+                    totalCalories += meal.calories || 0;
+                    
+                    const mealElement = document.createElement('div');
+                    mealElement.className = 'list-item';
+                    mealElement.innerHTML = `
+                        <div class="item-info">
+                            <h4>${meal.name}</h4>
+                            <div class="item-details">${meal.calories} cal • ${meal.weight}g</div>
+                        </div>
+                        <button class="delete-btn" onclick="deleteMeal('${meal.id}', '${dateString}')">Delete</button>
+                    `;
+                    mealList.appendChild(mealElement);
+                });
+            }
+            
+            totalMealWeightElement.textContent = totalWeight;
+            totalMealCaloriesElement.textContent = totalCalories;
+        }
+
+        function addMeal(e) {
+            e.preventDefault();
+            
+            const name = document.getElementById('mealName').value.trim();
+            const calories = parseInt(document.getElementById('mealCalories').value);
+            const weight = parseInt(document.getElementById('mealWeight').value);
+            
+            if (!name || isNaN(calories) || isNaN(weight)) {
+                alert('Please fill in all fields with valid values');
+                return;
+            }
+            
+            const meal = {
+                id: Date.now().toString(),
+                name,
+                calories,
+                weight,
+                timestamp: new Date().toISOString()
+            };
+            
+            const storageKeys = getStorageKeysForDate(currentSelectedDate);
+            const meals = JSON.parse(localStorage.getItem(storageKeys.meals) || '[]');
+            meals.push(meal);
+            localStorage.setItem(storageKeys.meals, JSON.stringify(meals));
+            
+            // Reset form and update UI
+            mealForm.reset();
+            loadMealsForDate(currentSelectedDate);
+            updateSummaryForDate(currentSelectedDate);
+            updateCalendar();
+        }
+
+        function deleteMeal(id, dateString) {
+            const storageKeys = getStorageKeysForDate(dateString);
+            const meals = JSON.parse(localStorage.getItem(storageKeys.meals) || '[]');
+            const filteredMeals = meals.filter(meal => meal.id !== id);
+            localStorage.setItem(storageKeys.meals, JSON.stringify(filteredMeals));
+            loadMealsForDate(dateString);
+            updateSummaryForDate(dateString);
+            updateCalendar();
+        }
+
+        // Activity Management Functions
+        function loadActivitiesForDate(dateString) {
+            const storageKeys = getStorageKeysForDate(dateString);
+            const activities = JSON.parse(localStorage.getItem(storageKeys.activities) || '[]');
+            activityList.innerHTML = '';
+            
+            let totalCalories = 0;
+            
+            if (activities.length === 0) {
+                activityList.innerHTML = '<div class="list-item"><div class="item-info"><h4>No activities logged</h4></div></div>';
+            } else {
+                // Sort activities by timestamp (newest first)
+                activities.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
+                
+                activities.forEach(activity => {
+                    totalCalories += activity.calories || 0;
+                    
+                    const activityElement = document.createElement('div');
+                    activityElement.className = 'list-item';
+                    activityElement.innerHTML = `
+                        <div class="item-info">
+                            <h4>${activity.name}</h4>
+                            <div class="item-details">${activity.calories} cal burnt</div>
+                        </div>
+                        <button class="delete-btn" onclick="deleteActivity('${activity.id}', '${dateString}')">Delete</button>
+                    `;
+                    activityList.appendChild(activityElement);
+                });
+            }
+            
+            totalActivityCaloriesElement.textContent = totalCalories;
+        }
+
+        function addActivity(e) {
+            e.preventDefault();
+            
+            const name = document.getElementById('activityName').value.trim();
+            const calories = parseInt(document.getElementById('activityCalories').value);
+            
+            if (!name || isNaN(calories)) {
+                alert('Please fill in all fields with valid values');
+                return;
+            }
+            
+            const activity = {
+                id: Date.now().toString(),
+                name,
+                calories,
+                timestamp: new Date().toISOString()
+            };
+            
+            const storageKeys = getStorageKeysForDate(currentSelectedDate);
+            const activities = JSON.parse(localStorage.getItem(storageKeys.activities) || '[]');
+            activities.push(activity);
+            localStorage.setItem(storageKeys.activities, JSON.stringify(activities));
+            
+            // Reset form and update UI
+            activityForm.reset();
+            loadActivitiesForDate(currentSelectedDate);
+            updateSummaryForDate(currentSelectedDate);
+            updateCalendar();
+        }
+
+        function deleteActivity(id, dateString) {
+            const storageKeys = getStorageKeysForDate(dateString);
+            const activities = JSON.parse(localStorage.getItem(storageKeys.activities) || '[]');
+            const filteredActivities = activities.filter(activity => activity.id !== id);
+            localStorage.setItem(storageKeys.activities, JSON.stringify(filteredActivities));
+            loadActivitiesForDate(dateString);
+            updateSummaryForDate(dateString);
+            updateCalendar();
+        }
+
+        // Summary Functions
+        function updateSummaryForDate(dateString) {
+            const storageKeys = getStorageKeysForDate(dateString);
+            const meals = JSON.parse(localStorage.getItem(storageKeys.meals) || '[]');
+            const activities = JSON.parse(localStorage.getItem(storageKeys.activities) || '[]');
+            
+            const gained = meals.reduce((sum, meal) => sum + (meal.calories || 0), 0);
+            const lost = activities.reduce((sum, activity) => sum + (activity.calories || 0), 0);
+            const net = gained - lost;
+            
+            summaryGainedElement.textContent = gained;
+            summaryLostElement.textContent = lost;
+            summaryNetElement.textContent = net;
+            
+            // Color coding for net calories
+            summaryNetElement.className = 'summary-value ';
+            if (net > 0) {
+                summaryNetElement.classList.add('net-positive');
+            } else if (net < 0) {
+                summaryNetElement.classList.add('net-negative');
+            } else {
+                summaryNetElement.classList.add('net-neutral');
+            }
+        }
+
+        // Date Range Export Functions
+        function exportDateRange() {
+            const startDate = startDateInput.value;
+            const endDate = endDateInput.value;
+            
+            if (!startDate || !endDate) {
+                alert('Please select both start and end dates');
+                return;
+            }
+            
+            if (new Date(startDate) > new Date(endDate)) {
+                alert('Start date must be before or equal to end date');
+                return;
+            }
+            
+            exportToPDF(startDate, endDate);
+        }
+
+        // Enhanced PDF Export Function
+        function exportToPDF(startDate, endDate) {
+            const { jsPDF } = window.jspdf;
+            const doc = new jsPDF({
+                unit: 'mm',
+                format: 'a4',
+                hotfixes: ["px_scaling"]
+            });
+            
+            // Set document properties
+            doc.setProperties({
+                title: `PLT-2026 Health Report - ${startDate} to ${endDate}`,
+                subject: 'Health Tracker Summary',
+                author: 'PLT-2026 Personal Life Tracker'
+            });
+            
+            // Title (reduced margin: 15mm from top)
+            doc.setFontSize(18);
+            doc.setTextColor(32, 201, 176); // Teal color
+            doc.text('PLT-2026 Health Tracker Report', 105, 15, null, null, 'center');
+            
+            // Date Range
+            doc.setFontSize(11);
+            doc.setTextColor(128, 128, 128);
+            if (startDate === endDate) {
+                doc.text(`Date: ${startDate}`, 105, 22, null, null, 'center');
+            } else {
+                doc.text(`Date Range: ${startDate} to ${endDate}`, 105, 22, null, null, 'center');
+            }
+            
+            let yPos = 30; // Reduced starting position
+            
+            // Process each date in range
+            const start = new Date(startDate);
+            const end = new Date(endDate);
+            let currentDate = new Date(start);
+            
+            while (currentDate <= end) {
+                const dateStr = currentDate.toISOString().split('T')[0];
+                const storageKeys = getStorageKeysForDate(dateStr);
+                
+                // Get data for this date
+                const meals = JSON.parse(localStorage.getItem(storageKeys.meals) || '[]');
+                const activities = JSON.parse(localStorage.getItem(storageKeys.activities) || '[]');
+                const weightHistory = JSON.parse(localStorage.getItem('health_weight_history') || '[]');
+                
+                // Find weight for this date
+                const weightRecord = weightHistory.find(record => record.date === dateStr);
+                
+                // Only add page break if we have data and not at the beginning
+                if ((meals.length > 0 || activities.length > 0 || weightRecord) && yPos > 10) {
+                    if (yPos > 250) { // Reduced page break threshold
+                        doc.addPage();
+                        yPos = 10; // Reduced margin for new pages
+                    }
+                }
+                
+                // Add date header if we have data
+                if (meals.length > 0 || activities.length > 0 || weightRecord) {
+                    // Format date nicely
+                    const formattedDate = new Date(dateStr).toLocaleDateString('en-US', {
+                        weekday: 'short',
+                        year: 'numeric',
+                        month: 'short',
+                        day: 'numeric'
+                    });
+                    
+                    doc.setFontSize(14);
+                    doc.setTextColor(0, 0, 0);
+                    doc.text(formattedDate, 15, yPos);
+                    yPos += 8; // Reduced spacing
+                    
+                    // Weight for this date
+                    if (weightRecord) {
+                        doc.setFontSize(10);
+                        doc.setTextColor(32, 201, 176);
+                        doc.text(`Weight: ${weightRecord.weight} kg`, 15, yPos);
+                        yPos += 6; // Reduced spacing
+                    }
+                    
+                    // Calculate totals
+                    const gained = meals.reduce((sum, meal) => sum + (meal.calories || 0), 0);
+                    const lost = activities.reduce((sum, activity) => sum + (activity.calories || 0), 0);
+                    const net = gained - lost;
+                    
+                    // Summary for this date
+                    doc.setTextColor(0, 0, 0);
+                    doc.text(`Gained: ${gained} cal | Burnt: ${lost} cal | Net: ${net} cal`, 15, yPos);
+                    yPos += 8; // Reduced spacing
+                    
+                    // Meals for this date (compact)
+                    if (meals.length > 0) {
+                        doc.setFontSize(10);
+                        doc.setTextColor(255, 179, 71); // Amber
+                        doc.text('Meals:', 15, yPos);
+                        yPos += 5; // Reduced spacing
+                        
+                        doc.setFontSize(9);
+                        doc.setTextColor(128, 128, 128);
+                        
+                        let mealLines = [];
+                        meals.forEach(meal => {
+                            mealLines.push(`• ${meal.name}: ${meal.calories} cal, ${meal.weight}g`);
+                        });
+                        
+                        // Split long lines to fit page width
+                        mealLines.forEach(line => {
+                            const lines = doc.splitTextToSize(line, 180); // Reduced width for more margin
+                            lines.forEach(l => {
+                                if (yPos > 250) { // Reduced page break threshold
+                                    doc.addPage();
+                                    yPos = 10; // Reduced margin
+                                }
+                                doc.text(l, 20, yPos);
+                                yPos += 5; // Reduced line spacing
+                            });
+                        });
+                        yPos += 3; // Reduced spacing after meals
+                    }
+                    
+                    // Activities for this date (compact)
+                    if (activities.length > 0) {
+                        doc.setFontSize(10);
+                        doc.setTextColor(46, 204, 113); // Emerald
+                        doc.text('Activities:', 15, yPos);
+                        yPos += 5; // Reduced spacing
+                        
+                        doc.setFontSize(9);
+                        doc.setTextColor(128, 128, 128);
+                        
+                        let activityLines = [];
+                        activities.forEach(activity => {
+                            activityLines.push(`• ${activity.name}: ${activity.calories} cal burnt`);
+                        });
+                        
+                        // Split long lines to fit page width
+                        activityLines.forEach(line => {
+                            const lines = doc.splitTextToSize(line, 180); // Reduced width for more margin
+                            lines.forEach(l => {
+                                if (yPos > 250) { // Reduced page break threshold
+                                    doc.addPage();
+                                    yPos = 10; // Reduced margin
+                                }
+                                doc.text(l, 20, yPos);
+                                yPos += 5; // Reduced line spacing
+                            });
+                        });
+                    }
+                    
+                    yPos += 10; // Reduced spacing between dates
+                }
+                
+                // Move to next day
+                currentDate.setDate(currentDate.getDate() + 1);
+            }
+            
+            // Add overall summary if multiple dates
+            if (startDate !== endDate) {
+                if (yPos > 230) { // Adjusted for page break
+                    doc.addPage();
+                    yPos = 10;
+                }
+                
+                doc.setFontSize(14);
+                doc.setTextColor(0, 0, 0);
+                doc.text('Overall Summary', 15, yPos);
+                yPos += 8;
+                
+                // Calculate totals across all dates
+                currentDate = new Date(start);
+                let totalGained = 0;
+                let totalLost = 0;
+                let daysWithData = 0;
+                
+                while (currentDate <= end) {
+                    const dateStr = currentDate.toISOString().split('T')[0];
+                    const storageKeys = getStorageKeysForDate(dateStr);
+                    
+                    const meals = JSON.parse(localStorage.getItem(storageKeys.meals) || '[]');
+                    const activities = JSON.parse(localStorage.getItem(storageKeys.activities) || '[]');
+                    
+                    if (meals.length > 0 || activities.length > 0) {
+                        daysWithData++;
+                        totalGained += meals.reduce((sum, meal) => sum + (meal.calories || 0), 0);
+                        totalLost += activities.reduce((sum, activity) => sum + (activity.calories || 0), 0);
+                    }
+                    
+                    currentDate.setDate(currentDate.getDate() + 1);
+                }
+                
+                doc.setFontSize(10);
+                doc.text(`Days with data: ${daysWithData}`, 20, yPos);
+                yPos += 5;
+                doc.text(`Total calories gained: ${totalGained}`, 20, yPos);
+                yPos += 5;
+                doc.text(`Total calories burnt: ${totalLost}`, 20, yPos);
+                yPos += 5;
+                doc.text(`Overall net: ${totalGained - totalLost} calories`, 20, yPos);
+            }
+            
+            // Footer
+            const pageCount = doc.internal.getNumberOfPages();
+            for(let i = 1; i <= pageCount; i++) {
+                doc.setPage(i);
+                doc.setFontSize(8);
+                doc.setTextColor(128, 128, 128);
+                doc.text(`Page ${i} of ${pageCount}`, 105, 290, null, null, 'center'); // Moved to bottom
+                doc.text('Generated by PLT-2026 Personal Life Tracker', 105, 293, null, null, 'center'); // Moved to bottom
+            }
+            
+            // Save the PDF
+            const filename = startDate === endDate 
+                ? `PLT-2026_Health_Report_${startDate}.pdf`
+                : `PLT-2026_Health_Report_${startDate}_to_${endDate}.pdf`;
+            
+            doc.save(filename);
+        }
+    </script>
+</body>
+</html>

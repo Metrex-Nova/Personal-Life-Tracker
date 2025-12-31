@@ -1,0 +1,909 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PDF Export | PLT-2026</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.28/jspdf.plugin.autotable.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Courier New', monospace;
+        }
+        
+        body {
+            background: #0a0a0a;
+            color: #f0f0f0;
+            min-height: 100vh;
+            padding: 0;
+            line-height: 1.4;
+        }
+        
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 0;
+        }
+        
+        header {
+            background: #1a1a1a;
+            padding: 10px 0;
+            text-align: center;
+            border-bottom: 1px solid #333;
+            margin-bottom: 0;
+        }
+        
+        h1 {
+            font-size: 20px;
+            font-weight: normal;
+            letter-spacing: 1px;
+            color: #f0f0f0;
+        }
+        
+        .controls {
+            background: #1a1a1a;
+            padding: 15px;
+            border-bottom: 1px solid #333;
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+        
+        button {
+            background: #2d2d2d;
+            color: #f0f0f0;
+            border: 1px solid #444;
+            padding: 8px 16px;
+            font-size: 14px;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-family: 'Courier New', monospace;
+        }
+        
+        button:hover {
+            background: #3d3d3d;
+            border-color: #666;
+        }
+        
+        input[type="date"] {
+            background: #2d2d2d;
+            color: #f0f0f0;
+            border: 1px solid #444;
+            padding: 8px;
+            font-family: 'Courier New', monospace;
+        }
+        
+        .content {
+            padding: 0;
+            background: #0a0a0a;
+        }
+        
+        .stats {
+            background: #1a1a1a;
+            padding: 15px;
+            margin: 0;
+            border: 1px solid #333;
+            border-top: none;
+        }
+        
+        .stat-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 5px 0;
+            border-bottom: 1px solid #333;
+        }
+        
+        .stat-row:last-child {
+            border-bottom: none;
+        }
+        
+        .pdf-section {
+            margin: 0;
+            padding: 0;
+            border: 1px solid #333;
+        }
+        
+        .section-title {
+            background: #2d2d2d;
+            padding: 8px 15px;
+            font-size: 14px;
+            border-bottom: 1px solid #444;
+            margin: 0;
+        }
+        
+        .section-content {
+            padding: 10px 15px;
+            font-size: 12px;
+            line-height: 1.3;
+        }
+        
+        .data-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 11px;
+        }
+        
+        .data-table th {
+            text-align: left;
+            padding: 4px 8px;
+            background: #2d2d2d;
+            border: 1px solid #444;
+            font-weight: normal;
+        }
+        
+        .data-table td {
+            padding: 4px 8px;
+            border: 1px solid #444;
+            vertical-align: top;
+        }
+        
+        .empty-message {
+            color: #888;
+            font-style: italic;
+            padding: 10px;
+            text-align: center;
+        }
+        
+        .date-range {
+            background: #1a1a1a;
+            padding: 10px 15px;
+            border: 1px solid #333;
+            border-top: none;
+            font-size: 12px;
+        }
+        
+        .compact-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 0;
+            margin: 0;
+            padding: 0;
+        }
+        
+        .page-info {
+            text-align: center;
+            padding: 5px;
+            font-size: 11px;
+            color: #888;
+            background: #1a1a1a;
+            border-top: 1px solid #333;
+        }
+        
+        /* NEW: Added for showing limited data message */
+        .limited-data {
+            color: #888;
+            font-size: 10px;
+            padding: 5px 0;
+            text-align: center;
+            border-top: 1px solid #333;
+            margin-top: 5px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>PLT-2026 DATA EXPORT</h1>
+        </header>
+        
+        <div class="controls">
+            <button onclick="generatePDF()">GENERATE PDF</button>
+            <button onclick="loadAllData()">RELOAD DATA</button>
+            <input type="date" id="startDate">
+            <input type="date" id="endDate">
+            <button onclick="setDateRange('week')">LAST 7 DAYS</button>
+            <button onclick="setDateRange('month')">LAST 30 DAYS</button>
+            <button onclick="setDateRange('all')">ALL TIME</button>
+        </div>
+        
+        <div class="date-range" id="dateRangeDisplay">
+            DATE RANGE: LOADING...
+        </div>
+        
+        <div class="stats">
+            <div class="stat-row">
+                <span>TOTAL DATA POINTS:</span>
+                <span id="totalPoints">0</span>
+            </div>
+            <div class="stat-row">
+                <span>DAYS COVERED:</span>
+                <span id="daysCovered">0</span>
+            </div>
+            <div class="stat-row">
+                <span>LAST UPDATED:</span>
+                <span id="lastUpdated">-</span>
+            </div>
+        </div>
+        
+        <div class="content">
+            <div class="compact-grid" id="dataGrid">
+                <!-- Data sections will be populated here -->
+            </div>
+        </div>
+        
+        <div class="page-info">
+            PLT-2026 PERSONAL TRACKER | DATA EXPORT UTILITY | GENERATED ON <span id="currentDate"></span>
+        </div>
+    </div>
+
+    <script>
+        // Set current date
+        document.getElementById('currentDate').textContent = new Date().toISOString().split('T')[0];
+        
+        // Date range settings
+        let startDate = null;
+        let endDate = null;
+        
+        // Initialize date inputs
+        const today = new Date();
+        const defaultStart = new Date(today);
+        defaultStart.setDate(today.getDate() - 30);
+        
+        document.getElementById('startDate').value = defaultStart.toISOString().split('T')[0];
+        document.getElementById('endDate').value = today.toISOString().split('T')[0];
+        
+        // Safe JSON parser
+        function safeJSONParse(str) {
+            try {
+                return JSON.parse(str);
+            } catch (e) {
+                return null;
+            }
+        }
+        
+        // Data collection - CORRECTED VERSION
+        const dataSources = {
+            screenTime: {
+                prefix: 'screen_time_',
+                name: 'SCREEN TIME',
+                getData: function() {
+                    return this.getAllByDate();
+                }
+            },
+            socialMedia: {
+                prefix: 'instagram_session_',
+                name: 'SOCIAL MEDIA',
+                getData: function() {
+                    return this.getAllByDate();
+                }
+            },
+            youtube: {
+                prefix: 'youtube_videos_',
+                name: 'YOUTUBE',
+                getData: function() {
+                    return this.getAllByDate();
+                }
+            },
+            health: {
+                prefix: 'health_',
+                name: 'HEALTH',
+                getData: function() {
+                    const data = {};
+                    Object.keys(localStorage).forEach(key => {
+                        if (key.startsWith(this.prefix)) {
+                            const value = safeJSONParse(localStorage.getItem(key));
+                            if (value !== null) {
+                                data[key] = value;
+                            }
+                        }
+                    });
+                    return data;
+                }
+            },
+            dsa: {
+                prefix: 'dsa',
+                name: 'DSA',
+                getData: function() {
+                    const data = {};
+                    Object.keys(localStorage).forEach(key => {
+                        if (key.startsWith(this.prefix)) {
+                            const value = safeJSONParse(localStorage.getItem(key));
+                            if (value !== null) {
+                                data[key] = value;
+                            }
+                        }
+                    });
+                    return data;
+                }
+            },
+            diary: {
+                prefix: 'diary_',
+                name: 'DIARY',
+                getData: function() {
+                    return this.getAllByDate();
+                }
+            },
+            development: {
+                prefix: 'dev_tasks_',
+                name: 'DEVELOPMENT',
+                getData: function() {
+                    return this.getAllByDate();
+                }
+            },
+            tasks: {
+                prefix: 'other_tasks_',
+                name: 'CLASSES & TASKS',
+                getData: function() {
+                    return this.getAllByDate();
+                }
+            }
+        };
+        
+        // Add helper methods to all data sources
+        Object.values(dataSources).forEach(source => {
+            source.getAllByDate = function() {
+                const data = {};
+                Object.keys(localStorage).forEach(key => {
+                    if (key.startsWith(this.prefix)) {
+                        const value = safeJSONParse(localStorage.getItem(key));
+                        if (value !== null) {
+                            data[key] = value;
+                        }
+                    }
+                });
+                return data;
+            };
+        });
+        
+        function setDateRange(rangeType) {
+            const end = new Date();
+            let start = new Date();
+            
+            switch(rangeType) {
+                case 'week':
+                    start.setDate(end.getDate() - 7);
+                    break;
+                case 'month':
+                    start.setDate(end.getDate() - 30);
+                    break;
+                case 'all':
+                    start = new Date('2020-01-01');
+                    break;
+            }
+            
+            document.getElementById('startDate').value = start.toISOString().split('T')[0];
+            document.getElementById('endDate').value = end.toISOString().split('T')[0];
+            loadAllData();
+        }
+        
+        function loadAllData() {
+            startDate = new Date(document.getElementById('startDate').value);
+            endDate = new Date(document.getElementById('endDate').value);
+            
+            updateDateRangeDisplay();
+            
+            const allData = {};
+            let totalPoints = 0;
+            const dates = new Set();
+            
+            // Collect data from all sources
+            Object.entries(dataSources).forEach(([key, source]) => {
+                allData[key] = source.getData();
+                
+                // Count data points and collect dates
+                Object.entries(allData[key]).forEach(([dataKey, data]) => {
+                    totalPoints++;
+                    
+                    // Extract date from key
+                    const dateMatch = dataKey.match(/\d{4}-\d{2}-\d{2}/);
+                    if (dateMatch) {
+                        dates.add(dateMatch[0]);
+                    }
+                    
+                    // Also check if data has date property
+                    if (data && data.date) {
+                        dates.add(data.date);
+                    }
+                });
+            });
+            
+            // Update stats
+            document.getElementById('totalPoints').textContent = totalPoints;
+            document.getElementById('daysCovered').textContent = dates.size;
+            document.getElementById('lastUpdated').textContent = new Date().toLocaleTimeString();
+            
+            // Render data sections
+            renderDataSections(allData);
+            
+            return allData;
+        }
+        
+        function updateDateRangeDisplay() {
+            const display = document.getElementById('dateRangeDisplay');
+            if (startDate && endDate) {
+                display.textContent = `DATE RANGE: ${startDate.toISOString().split('T')[0]} TO ${endDate.toISOString().split('T')[0]}`;
+            }
+        }
+        
+        function renderDataSections(allData) {
+            const grid = document.getElementById('dataGrid');
+            grid.innerHTML = '';
+            
+            Object.entries(dataSources).forEach(([key, source]) => {
+                const data = allData[key];
+                const section = createDataSection(source.name, data, key);
+                grid.appendChild(section);
+            });
+        }
+        
+        function createDataSection(title, data, type) {
+            const section = document.createElement('div');
+            section.className = 'pdf-section';
+            
+            const titleDiv = document.createElement('div');
+            titleDiv.className = 'section-title';
+            titleDiv.textContent = title;
+            
+            const contentDiv = document.createElement('div');
+            contentDiv.className = 'section-content';
+            
+            if (Object.keys(data).length === 0) {
+                contentDiv.innerHTML = '<div class="empty-message">NO DATA FOUND</div>';
+            } else {
+                contentDiv.appendChild(createDataTable(data, type));
+            }
+            
+            section.appendChild(titleDiv);
+            section.appendChild(contentDiv);
+            return section;
+        }
+        
+        function createDataTable(data, type) {
+            const table = document.createElement('table');
+            table.className = 'data-table';
+            
+            // Create headers based on data type
+            let headers = ['DATE', 'DATA'];
+            if (type === 'screenTime') headers = ['DATE', 'MOBILE', 'LAPTOP', 'TOTAL'];
+            if (type === 'diary') headers = ['DATE', 'MOOD', 'ENERGY', 'CONTENT'];
+            if (type === 'tasks' || type === 'development') headers = ['DATE', 'TITLE', 'CATEGORY', 'PROGRESS'];
+            if (type === 'dsa') headers = ['DATE', 'QUESTION', 'DIFFICULTY', 'TOPICS'];
+            if (type === 'youtube') headers = ['DATE', 'VIDEO', 'DURATION', 'WATCHED'];
+            if (type === 'socialMedia') headers = ['DATE', 'PLATFORM', 'START', 'END'];
+            if (type === 'health') headers = ['DATE', 'TYPE', 'VALUE', 'UNIT'];
+            
+            // Create header row
+            const thead = document.createElement('thead');
+            const headerRow = document.createElement('tr');
+            headers.forEach(header => {
+                const th = document.createElement('th');
+                th.textContent = header;
+                headerRow.appendChild(th);
+            });
+            thead.appendChild(headerRow);
+            table.appendChild(thead);
+            
+            // Create body
+            const tbody = document.createElement('tbody');
+            
+            // Process and sort data by date
+            const entries = Object.entries(data);
+            entries.sort((a, b) => {
+                const dateA = extractDateFromKey(a[0]) || '';
+                const dateB = extractDateFromKey(b[0]) || '';
+                return dateB.localeCompare(dateA);
+            });
+            
+            // Filter by date range
+            const filteredEntries = entries.filter(([key, value]) => {
+                const dateStr = extractDateFromKey(key) || (value && value.date) || '';
+                if (!dateStr) return true; // Keep non-dated entries
+                
+                const date = new Date(dateStr);
+                return (!startDate || date >= startDate) && (!endDate || date <= endDate);
+            });
+            
+            // Display entries
+            let entryCount = 0;
+            const maxDSAQuestions = 10; // CHANGED: Limit to last 10 DSA questions
+            
+            filteredEntries.forEach(([key, value]) => {
+                // CHANGED: For DSA, limit to last 10 questions
+                if (type === 'dsa' && entryCount >= maxDSAQuestions) {
+                    return;
+                }
+                
+                const row = document.createElement('tr');
+                
+                // Extract date from key or data
+                const dateStr = extractDateFromKey(key) || (value && value.date) || key;
+                const displayDate = dateStr.split('T')[0];
+                
+                // Create cells based on data type
+                if (type === 'screenTime') {
+                    row.innerHTML = `
+                        <td>${displayDate}</td>
+                        <td>${value.mobileHours ? value.mobileHours.toFixed(1) + 'h' : '-'}</td>
+                        <td>${value.laptopHours ? value.laptopHours.toFixed(1) + 'h' : '-'}</td>
+                        <td>${value.totalHours ? value.totalHours.toFixed(1) + 'h' : '-'}</td>
+                    `;
+                    tbody.appendChild(row);
+                } 
+                else if (type === 'diary') {
+                    // CHANGED: Don't show diary content on website, only show placeholder
+                    const content = ''; // CHANGED: Hide content from website
+                    row.innerHTML = `
+                        <td>${displayDate}</td>
+                        <td>${value.mood || '-'}</td>
+                        <td>${value.energy || '-'}</td>
+                        <td>${content || '-'}</td>
+                    `;
+                    tbody.appendChild(row);
+                } 
+                else if (type === 'tasks' || type === 'development') {
+                    if (Array.isArray(value)) {
+                        value.forEach(item => {
+                            const itemRow = document.createElement('tr');
+                            itemRow.innerHTML = `
+                                <td>${displayDate}</td>
+                                <td>${item.title || '-'}</td>
+                                <td>${item.category || '-'}</td>
+                                <td>${item.percentage || 0}%</td>
+                            `;
+                            tbody.appendChild(itemRow);
+                        });
+                    }
+                } 
+                else if (type === 'dsa') {
+                    if (key === 'dsaData' && value.questions) {
+                        // CHANGED: Sort DSA questions by date (newest first) and take only last 10
+                        const sortedQuestions = value.questions.sort((a, b) => {
+                            const dateA = a.createdAt ? new Date(a.createdAt) : new Date(0);
+                            const dateB = b.createdAt ? new Date(b.createdAt) : new Date(0);
+                            return dateB - dateA;
+                        });
+                        
+                        // CHANGED: Take only last 10 questions
+                        const recentQuestions = sortedQuestions.slice(0, maxDSAQuestions);
+                        
+                        recentQuestions.forEach(q => {
+                            const itemRow = document.createElement('tr');
+                            itemRow.innerHTML = `
+                                <td>${q.createdAt ? q.createdAt.split('T')[0] : '-'}</td>
+                                <td>${q.title || '-'}</td>
+                                <td>${q.difficulty || '-'}</td>
+                                <td>${Array.isArray(q.topics) ? q.topics.join(', ') : '-'}</td>
+                            `;
+                            tbody.appendChild(itemRow);
+                            entryCount++;
+                        });
+                        
+                        // CHANGED: Add a note about limited display
+                        if (value.questions.length > maxDSAQuestions) {
+                            const noteRow = document.createElement('tr');
+                            const noteCell = document.createElement('td');
+                            noteCell.colSpan = headers.length;
+                            noteCell.textContent = `Showing ${maxDSAQuestions} most recent of ${value.questions.length} total questions`;
+                            noteCell.style.textAlign = 'center';
+                            noteCell.style.color = '#888';
+                            noteCell.style.fontSize = '10px';
+                            noteCell.style.padding = '8px';
+                            noteRow.appendChild(noteCell);
+                            tbody.appendChild(noteRow);
+                        }
+                    }
+                }
+                else if (type === 'youtube') {
+                    if (Array.isArray(value)) {
+                        value.forEach(video => {
+                            const itemRow = document.createElement('tr');
+                            const duration = video.actualDuration !== undefined ? video.actualDuration + 'm' : 
+                                           video.duration ? Math.round(video.duration/60) + 'm' : '-';
+                            itemRow.innerHTML = `
+                                <td>${displayDate}</td>
+                                <td>${video.title || '-'}</td>
+                                <td>${duration}</td>
+                                <td>${video.watched ? 'Yes' : 'No'}</td>
+                            `;
+                            tbody.appendChild(itemRow);
+                        });
+                    }
+                }
+                else if (type === 'socialMedia') {
+                    row.innerHTML = `
+                        <td>${displayDate}</td>
+                        <td>${value.platform || 'Instagram'}</td>
+                        <td>${value.windowStart || '-'}</td>
+                        <td>${value.windowEnd || '-'}</td>
+                    `;
+                    tbody.appendChild(row);
+                }
+                else if (type === 'health') {
+                    if (Array.isArray(value)) {
+                        value.forEach(item => {
+                            const itemRow = document.createElement('tr');
+                            let itemType = 'Unknown';
+                            let itemValue = '-';
+                            let unit = '-';
+                            
+                            if (item.weight !== undefined) {
+                                itemType = 'Weight';
+                                itemValue = item.weight;
+                                unit = 'kg';
+                            } else if (item.calories !== undefined) {
+                                itemType = item.name || 'Calories';
+                                itemValue = item.calories;
+                                unit = 'cal';
+                            } else if (item.name) {
+                                itemType = item.name;
+                                itemValue = item.value || '-';
+                                unit = item.unit || '-';
+                            }
+                            
+                            itemRow.innerHTML = `
+                                <td>${displayDate}</td>
+                                <td>${itemType}</td>
+                                <td>${itemValue}</td>
+                                <td>${unit}</td>
+                            `;
+                            tbody.appendChild(itemRow);
+                        });
+                    } else if (typeof value === 'number') {
+                        // For health_weight single value
+                        const itemRow = document.createElement('tr');
+                        itemRow.innerHTML = `
+                            <td>${displayDate}</td>
+                            <td>Weight</td>
+                            <td>${value}</td>
+                            <td>kg</td>
+                        `;
+                        tbody.appendChild(itemRow);
+                    }
+                }
+                else {
+                    // Generic display for other data types
+                    const dataStr = typeof value === 'object' ? 
+                        JSON.stringify(value).substring(0, 100) + '...' : 
+                        String(value).substring(0, 100);
+                    
+                    row.innerHTML = `
+                        <td>${displayDate}</td>
+                        <td colspan="${headers.length - 1}">${dataStr}</td>
+                    `;
+                    tbody.appendChild(row);
+                }
+            });
+            
+            if (filteredEntries.length === 0) {
+                const row = document.createElement('tr');
+                const cell = document.createElement('td');
+                cell.colSpan = headers.length;
+                cell.textContent = 'NO DATA IN SELECTED RANGE';
+                cell.style.textAlign = 'center';
+                cell.style.color = '#888';
+                row.appendChild(cell);
+                tbody.appendChild(row);
+            }
+            
+            table.appendChild(tbody);
+            return table;
+        }
+        
+        function extractDateFromKey(key) {
+            const match = key.match(/\d{4}-\d{2}-\d{2}/);
+            return match ? match[0] : null;
+        }
+        
+        function generatePDF() {
+            const { jsPDF } = window.jspdf;
+            const doc = new jsPDF({
+                orientation: 'portrait',
+                unit: 'mm',
+                format: 'a4'
+            });
+            
+            // Minimal margins
+            const margin = 5;
+            const pageWidth = doc.internal.pageSize.width;
+            const pageHeight = doc.internal.pageSize.height;
+            
+            // Set font
+            doc.setFont('courier');
+            doc.setFontSize(8);
+            
+            // Title
+            doc.setFontSize(10);
+            doc.text('PLT-2026 PERSONAL TRACKER DATA EXPORT', margin, margin);
+            doc.setFontSize(8);
+            
+            // Date range
+            const dateRangeText = `DATE RANGE: ${startDate.toISOString().split('T')[0]} TO ${endDate.toISOString().split('T')[0]}`;
+            doc.text(dateRangeText, margin, margin + 6);
+            
+            // Generation timestamp
+            const timestamp = `GENERATED ON: ${new Date().toISOString().split('T')[0]}`;
+            doc.text(timestamp, margin, margin + 10);
+            
+            let yPosition = margin + 16;
+            
+            // Collect all data
+            const allData = {};
+            Object.entries(dataSources).forEach(([key, source]) => {
+                allData[key] = source.getData();
+            });
+            
+            // Generate PDF sections
+            Object.entries(dataSources).forEach(([key, source], index) => {
+                const data = allData[key];
+                
+                // Check if we need a new page
+                if (yPosition > pageHeight - margin - 20) {
+                    doc.addPage();
+                    yPosition = margin;
+                }
+                
+                // Section title
+                doc.setFontSize(9);
+                doc.setFont('courier', 'bold');
+                doc.text(`${index + 1}. ${source.name}`, margin, yPosition);
+                doc.setFont('courier', 'normal');
+                yPosition += 5;
+                
+                // Filter and sort data by date
+                const entries = Object.entries(data);
+                entries.sort((a, b) => {
+                    const dateA = extractDateFromKey(a[0]) || '';
+                    const dateB = extractDateFromKey(b[0]) || '';
+                    return dateB.localeCompare(dateA);
+                });
+                
+                const filteredEntries = entries.filter(([key, value]) => {
+                    const dateStr = extractDateFromKey(key) || (value && value.date) || '';
+                    if (!dateStr) return false;
+                    
+                    const date = new Date(dateStr);
+                    return (!startDate || date >= startDate) && (!endDate || date <= endDate);
+                });
+                
+                // For PDF, don't limit DSA questions and show full diary content
+                const displayEntries = filteredEntries;
+                
+                if (displayEntries.length === 0) {
+                    doc.setFontSize(8);
+                    doc.text('NO DATA IN SELECTED RANGE', margin + 5, yPosition);
+                    yPosition += 5;
+                } else {
+                    doc.setFontSize(7);
+                    
+                    displayEntries.forEach(([key, value]) => {
+                        const dateStr = extractDateFromKey(key) || (value && value.date) || key;
+                        const displayDate = dateStr.split('T')[0];
+                        
+                        // Check if we need a new page
+                        if (yPosition > pageHeight - margin - 10) {
+                            doc.addPage();
+                            yPosition = margin;
+                        }
+                        
+                        // Print data based on type
+                        if (key.includes('screen_time')) {
+                            const text = `${displayDate} | MOBILE: ${value.mobileHours ? value.mobileHours.toFixed(1) + 'h' : '-'} | LAPTOP: ${value.laptopHours ? value.laptopHours.toFixed(1) + 'h' : '-'} | TOTAL: ${value.totalHours ? value.totalHours.toFixed(1) + 'h' : '-'}`;
+                            doc.text(text, margin, yPosition);
+                            yPosition += 4;
+                        } 
+                        else if (key.includes('diary_')) {
+                            // CHANGED: Show full diary content in PDF
+                            const content = value.content ? value.content.replace(/<br>/g, ' ') : 'No content';
+                            const moodEnergy = `${displayDate} | MOOD: ${value.mood || '-'} | ENERGY: ${value.energy || '-'}`;
+                            doc.text(moodEnergy, margin, yPosition);
+                            yPosition += 4;
+                            
+                            // Split content into lines that fit the page
+                            const maxLineLength = 80;
+                            const contentLines = splitTextIntoLines(content, maxLineLength);
+                            
+                            contentLines.forEach(line => {
+                                if (yPosition > pageHeight - margin - 10) {
+                                    doc.addPage();
+                                    yPosition = margin;
+                                }
+                                doc.text(`  ${line}`, margin, yPosition);
+                                yPosition += 4;
+                            });
+                            yPosition += 2; // Extra space after diary entry
+                        }
+                        else if (key.includes('tasks_') && Array.isArray(value)) {
+                            value.forEach(item => {
+                                if (yPosition > pageHeight - margin - 10) {
+                                    doc.addPage();
+                                    yPosition = margin;
+                                }
+                                const text = `${displayDate} | ${item.title || '-'} | ${item.category || '-'} | ${item.percentage || 0}%`;
+                                doc.text(text, margin, yPosition);
+                                yPosition += 3.5;
+                            });
+                        }
+                        else if (key === 'dsaData' && value.questions) {
+                            // CHANGED: Show all DSA questions in PDF, not just last 10
+                            value.questions.forEach(q => {
+                                if (yPosition > pageHeight - margin - 10) {
+                                    doc.addPage();
+                                    yPosition = margin;
+                                }
+                                const date = q.createdAt ? q.createdAt.split('T')[0] : '-';
+                                const text = `${date} | ${q.title || '-'} | ${q.difficulty || '-'} | ${Array.isArray(q.topics) ? q.topics.join(', ') : '-'}`;
+                                doc.text(text, margin, yPosition);
+                                yPosition += 3.5;
+                            });
+                        }
+                        else if (key.includes('youtube_videos_') && Array.isArray(value)) {
+                            value.forEach(video => {
+                                if (yPosition > pageHeight - margin - 10) {
+                                    doc.addPage();
+                                    yPosition = margin;
+                                }
+                                const duration = video.actualDuration !== undefined ? video.actualDuration + 'm' : 
+                                               video.duration ? Math.round(video.duration/60) + 'm' : '-';
+                                const text = `${displayDate} | ${video.title || '-'} | ${duration} | ${video.watched ? 'Watched' : 'Not Watched'}`;
+                                doc.text(text, margin, yPosition);
+                                yPosition += 3.5;
+                            });
+                        }
+                        else if (key.includes('instagram_session_')) {
+                            const text = `${displayDate} | ${value.platform || 'Instagram'} | ${value.windowStart || '-'} to ${value.windowEnd || '-'}`;
+                            doc.text(text, margin, yPosition);
+                            yPosition += 4;
+                        }
+                        else {
+                            // Generic display
+                            const dataStr = typeof value === 'object' ? 
+                                JSON.stringify(value).substring(0, 80) : 
+                                String(value).substring(0, 80);
+                            const text = `${displayDate} | ${dataStr}`;
+                            doc.text(text, margin, yPosition);
+                            yPosition += 4;
+                        }
+                    });
+                }
+                
+                yPosition += 6; // Space between sections
+            });
+            
+            // Add page numbers
+            const pageCount = doc.internal.getNumberOfPages();
+            for (let i = 1; i <= pageCount; i++) {
+                doc.setPage(i);
+                doc.setFontSize(7);
+                doc.text(`PAGE ${i} OF ${pageCount}`, pageWidth - margin - 20, pageHeight - margin);
+            }
+            
+            // Save PDF
+            const filename = `PLT-2026_Export_${new Date().toISOString().split('T')[0]}.pdf`;
+            doc.save(filename);
+        }
+        
+        // Helper function to split text into lines for PDF
+        function splitTextIntoLines(text, maxLength) {
+            const lines = [];
+            let currentLine = '';
+            const words = text.split(' ');
+            
+            for (const word of words) {
+                if ((currentLine + ' ' + word).length <= maxLength) {
+                    currentLine += (currentLine ? ' ' : '') + word;
+                } else {
+                    if (currentLine) {
+                        lines.push(currentLine);
+                    }
+                    currentLine = word;
+                }
+            }
+            
+            if (currentLine) {
+                lines.push(currentLine);
+            }
+            
+            return lines;
+        }
+        
+        // Initialize on load
+        window.addEventListener('load', () => {
+            loadAllData();
+        });
+    </script>
+</body>
+</html>
