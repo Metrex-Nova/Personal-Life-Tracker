@@ -6,7 +6,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>PLT-2026 | Development Task Tracker</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-        <style>
+    <style>
         * {
             margin: 0;
             padding: 0;
@@ -15,19 +15,16 @@
         }
 
         :root {
-            --bg-dark: #0a0a0f;
-            --surface-dark: #111122;
-            --surface-light: #1a1a2e;
+            --bg-dark: #000000;
+            --surface-dark: #000000;
+            --surface-light: #111111;
             --text-primary: #ffffff;
             --text-secondary: #cccccc;
             --text-muted: #888888;
-            --border-color: rgba(255, 255, 255, 0.08);
-            --accent-gold: #d4af37;
-            --accent-gold-light: #f4e4a6;
-            --accent-silver: #c0c0c0;
+            --border-color: rgba(255, 255, 255, 0.1);
             --shadow-dark: 0 8px 32px rgba(0, 0, 0, 0.4);
             --shadow-light: 0 4px 16px rgba(0, 0, 0, 0.3);
-            --border-radius: 10px;
+            --border-radius: 8px;
             --transition: all 0.3s ease;
         }
 
@@ -40,10 +37,10 @@
         }
 
         .container {
-            max-width: 1400px;
+            max-width: 1200px;
             margin: 0 auto;
             display: grid;
-            grid-template-columns: 1fr 2fr 1fr;
+            grid-template-columns: 1fr;
             gap: 20px;
         }
 
@@ -53,70 +50,50 @@
             background: var(--surface-dark);
             border: 1px solid var(--border-color);
             border-radius: var(--border-radius);
-            padding: 24px 32px;
+            padding: 20px;
             margin-bottom: 10px;
-            box-shadow: var(--shadow-dark);
             display: flex;
             justify-content: space-between;
             align-items: center;
             position: relative;
-            overflow: hidden;
-        }
-
-        header::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            height: 2px;
-            background: linear-gradient(90deg, transparent, var(--accent-gold), transparent);
         }
 
         .header-title h1 {
             color: var(--text-primary);
-            font-size: 2.2rem;
-            margin-bottom: 6px;
-            font-weight: 300;
-            letter-spacing: 1px;
-        }
-
-        .header-title h1 i {
-            color: var(--accent-gold);
-            margin-right: 12px;
+            font-size: 2rem;
+            margin-bottom: 4px;
+            font-weight: 400;
         }
 
         .header-title p {
             color: var(--text-muted);
-            font-size: 1rem;
-            letter-spacing: 0.5px;
+            font-size: 0.9rem;
         }
 
         .date-selector {
             display: flex;
             align-items: center;
-            gap: 12px;
+            gap: 10px;
         }
 
         .date-display {
             background: var(--surface-light);
             border: 1px solid var(--border-color);
             border-radius: var(--border-radius);
-            padding: 14px 20px;
-            font-size: 1.1rem;
+            padding: 12px 16px;
+            font-size: 1rem;
             font-weight: 400;
             color: var(--text-primary);
-            min-width: 200px;
+            min-width: 180px;
             text-align: center;
-            letter-spacing: 0.5px;
         }
 
         .date-nav-btn {
             background: var(--surface-light);
             border: 1px solid var(--border-color);
             border-radius: var(--border-radius);
-            width: 44px;
-            height: 44px;
+            width: 40px;
+            height: 40px;
             display: flex;
             align-items: center;
             justify-content: center;
@@ -127,99 +104,19 @@
 
         .date-nav-btn:hover {
             background: var(--surface-dark);
-            border-color: var(--accent-gold);
-            color: var(--accent-gold-light);
+            border-color: var(--border-color);
+            color: var(--text-primary);
         }
 
-        /* Panel Common Styles */
-        .panel {
+        /* Main Panel */
+        .main-panel {
             background: var(--surface-dark);
             border: 1px solid var(--border-color);
             border-radius: var(--border-radius);
             padding: 24px;
-            box-shadow: var(--shadow-dark);
-            height: fit-content;
         }
 
-        .panel h2 {
-            color: var(--text-primary);
-            font-size: 1.4rem;
-            margin-bottom: 20px;
-            padding-bottom: 12px;
-            border-bottom: 1px solid var(--border-color);
-            font-weight: 300;
-            letter-spacing: 1px;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-
-        .panel h2 i {
-            color: var(--accent-gold);
-        }
-
-        /* Left Column - Date Management */
-        .date-management .stats {
-            display: flex;
-            flex-direction: column;
-            gap: 12px;
-            margin-bottom: 24px;
-        }
-
-        .stat-item {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 16px;
-            background: var(--surface-light);
-            border-radius: var(--border-radius);
-            border: 1px solid var(--border-color);
-        }
-
-        .stat-label {
-            color: var(--text-muted);
-            font-size: 0.9rem;
-            letter-spacing: 0.5px;
-        }
-
-        .stat-value {
-            color: var(--text-primary);
-            font-size: 1.4rem;
-            font-weight: 300;
-        }
-
-        .date-actions {
-            display: flex;
-            flex-direction: column;
-            gap: 10px;
-        }
-
-        .btn {
-            padding: 14px 20px;
-            border: 1px solid var(--border-color);
-            border-radius: var(--border-radius);
-            font-weight: 400;
-            font-size: 0.95rem;
-            cursor: pointer;
-            transition: var(--transition);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 10px;
-            letter-spacing: 0.5px;
-            background: var(--surface-light);
-            color: var(--text-primary);
-        }
-
-        .btn:hover {
-            background: var(--surface-dark);
-            border-color: var(--accent-gold);
-            transform: translateY(-2px);
-            box-shadow: var(--shadow-light);
-            color: var(--accent-gold-light);
-        }
-
-        /* Center Column - Task Management */
+        /* Form Styles */
         .add-task-form {
             background: var(--surface-light);
             border-radius: var(--border-radius);
@@ -238,7 +135,6 @@
             margin-bottom: 8px;
             font-weight: 400;
             font-size: 0.9rem;
-            letter-spacing: 0.5px;
         }
 
         .form-control {
@@ -246,7 +142,7 @@
             padding: 12px 16px;
             background: rgba(255, 255, 255, 0.05);
             border: 1px solid var(--border-color);
-            border-radius: 8px;
+            border-radius: 6px;
             color: var(--text-primary);
             font-size: 0.95rem;
             transition: var(--transition);
@@ -254,7 +150,7 @@
 
         .form-control:focus {
             outline: none;
-            border-color: var(--accent-gold);
+            border-color: rgba(255, 255, 255, 0.2);
             background: rgba(255, 255, 255, 0.08);
         }
 
@@ -282,6 +178,58 @@
             color: var(--text-primary);
         }
 
+        .btn {
+            padding: 12px 16px;
+            border: 1px solid var(--border-color);
+            border-radius: var(--border-radius);
+            font-weight: 400;
+            font-size: 0.95rem;
+            cursor: pointer;
+            transition: var(--transition);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            background: var(--surface-light);
+            color: var(--text-primary);
+            width: 100%;
+        }
+
+        .btn:hover {
+            background: var(--surface-dark);
+            border-color: var(--border-color);
+        }
+
+        /* Stats Section */
+        .stats-section {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 16px;
+            margin-bottom: 24px;
+        }
+
+        .stat-item {
+            background: var(--surface-light);
+            border: 1px solid var(--border-color);
+            border-radius: var(--border-radius);
+            padding: 16px;
+            text-align: center;
+        }
+
+        .stat-label {
+            color: var(--text-muted);
+            font-size: 0.9rem;
+            margin-bottom: 8px;
+            display: block;
+        }
+
+        .stat-value {
+            color: var(--text-primary);
+            font-size: 1.5rem;
+            font-weight: 300;
+        }
+
+        /* Task List */
         .task-list {
             display: flex;
             flex-direction: column;
@@ -297,9 +245,7 @@
         }
 
         .task-item:hover {
-            border-color: var(--accent-gold);
-            transform: translateY(-2px);
-            box-shadow: var(--shadow-light);
+            border-color: rgba(255, 255, 255, 0.2);
         }
 
         .task-header {
@@ -325,9 +271,9 @@
             border: 1px solid var(--border-color);
             color: var(--text-muted);
             cursor: pointer;
-            width: 34px;
-            height: 34px;
-            border-radius: 8px;
+            width: 32px;
+            height: 32px;
+            border-radius: 6px;
             display: flex;
             align-items: center;
             justify-content: center;
@@ -335,9 +281,8 @@
         }
 
         .task-action-btn:hover {
-            background: var(--surface-dark);
-            border-color: var(--accent-gold);
-            color: var(--accent-gold-light);
+            background: rgba(255, 255, 255, 0.05);
+            color: var(--text-primary);
         }
 
         #datePicker::-webkit-calendar-picker-indicator {
@@ -389,16 +334,16 @@
         }
 
         .progress-bar {
-            height: 6px;
+            height: 4px;
             background: rgba(255, 255, 255, 0.05);
-            border-radius: 3px;
+            border-radius: 2px;
             overflow: hidden;
         }
 
         .progress-fill {
             height: 100%;
-            background: var(--accent-gold);
-            border-radius: 3px;
+            background: var(--text-primary);
+            border-radius: 2px;
             transition: width 0.5s ease;
         }
 
@@ -414,86 +359,7 @@
             color: var(--border-color);
         }
 
-        /* Right Column - Progress Summary */
-        .daily-summary .summary-stats {
-            display: flex;
-            flex-direction: column;
-            gap: 20px;
-            margin-bottom: 24px;
-        }
-
-        .summary-item {
-            display: flex;
-            align-items: center;
-            gap: 16px;
-        }
-
-        .summary-icon {
-            width: 48px;
-            height: 48px;
-            border-radius: var(--border-radius);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 1.2rem;
-            background: var(--surface-light);
-            border: 1px solid var(--border-color);
-            color: var(--accent-gold);
-        }
-
-        .summary-content h3 {
-            color: var(--text-primary);
-            font-size: 1.6rem;
-            margin-bottom: 4px;
-            font-weight: 300;
-        }
-
-        .summary-content p {
-            color: var(--text-muted);
-            font-size: 0.9rem;
-            letter-spacing: 0.5px;
-        }
-
-        .category-breakdown {
-            margin-top: 24px;
-        }
-
-        .category-item {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 12px 0;
-            border-bottom: 1px solid var(--border-color);
-        }
-
-        .category-item:last-child {
-            border-bottom: none;
-        }
-
-        .category-name {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            color: var(--text-secondary);
-        }
-
-        .category-count {
-            color: var(--text-primary);
-            font-weight: 400;
-        }
-
         /* Responsive Design */
-        @media (max-width: 1200px) {
-            .container {
-                grid-template-columns: 1fr;
-                gap: 20px;
-            }
-
-            .form-row {
-                grid-template-columns: 1fr;
-            }
-        }
-
         @media (max-width: 768px) {
             body {
                 padding: 16px;
@@ -503,7 +369,7 @@
                 flex-direction: column;
                 gap: 20px;
                 text-align: center;
-                padding: 20px;
+                padding: 16px;
             }
 
             .date-selector {
@@ -511,8 +377,16 @@
                 justify-content: center;
             }
 
-            .panel {
-                padding: 20px;
+            .stats-section {
+                grid-template-columns: 1fr;
+            }
+
+            .form-row {
+                grid-template-columns: 1fr;
+            }
+
+            .main-panel {
+                padding: 16px;
             }
         }
 
@@ -526,21 +400,16 @@
             }
 
             header {
-                padding: 16px;
+                padding: 12px;
             }
 
             .header-title h1 {
-                font-size: 1.8rem;
+                font-size: 1.5rem;
             }
 
             .date-display {
                 min-width: auto;
-                padding: 12px;
-                font-size: 1rem;
-            }
-
-            .btn {
-                padding: 12px 16px;
+                padding: 10px;
                 font-size: 0.9rem;
             }
         }
@@ -571,8 +440,8 @@
             position: absolute;
             top: -8px;
             right: -8px;
-            background: var(--accent-gold);
-            color: var(--bg-dark);
+            background: var(--surface-light);
+            color: var(--text-primary);
             font-size: 0.7rem;
             font-weight: 500;
             padding: 3px 8px;
@@ -604,11 +473,10 @@
             </div>
         </header>
 
-        <!-- Left Column: Date Management -->
-        <div class="panel date-management">
-            <h2><i class="fas fa-calendar-alt"></i> Date Management</h2>
-
-            <div class="stats">
+        <!-- Main Panel (Merged Date Management and Task Management) -->
+        <div class="main-panel">
+            <!-- Stats Section -->
+            <div class="stats-section">
                 <div class="stat-item">
                     <span class="stat-label">Total Tasks</span>
                     <span class="stat-value" id="totalTasks">0</span>
@@ -623,23 +491,7 @@
                 </div>
             </div>
 
-            <div class="date-actions">
-                <button class="btn btn-primary" id="copyPreviousBtn">
-                    <i class="fas fa-copy"></i> Copy Tasks from Previous Day
-                </button>
-                <button class="btn btn-secondary" id="markAllCompleteBtn">
-                    <i class="fas fa-check-circle"></i> Mark All as Complete
-                </button>
-                <button class="btn btn-warning" id="clearTasksBtn">
-                    <i class="fas fa-trash-alt"></i> Clear Today's Tasks
-                </button>
-            </div>
-        </div>
-
-        <!-- Center Column: Task Management -->
-        <div class="panel task-management">
-            <h2><i class="fas fa-tasks"></i> Task Management</h2>
-
+            <!-- Add Task Form -->
             <div class="add-task-form">
                 <div class="form-group">
                     <label for="taskTitle">Task Title</label>
@@ -663,7 +515,6 @@
                             <option value="Blockchain">Blockchain</option>
                             <option value="Ml">Ml</option>
                             <option value="AI">AI</option>
-
                         </select>
                     </div>
 
@@ -685,65 +536,18 @@
                     </div>
                 </div>
 
-                <button class="btn btn-primary" id="addTaskBtn" style="width: 100%;">
+                <button class="btn" id="addTaskBtn">
                     <i class="fas fa-plus-circle"></i> Add Task
                 </button>
             </div>
 
+            <!-- Task List -->
             <div class="task-list" id="taskListContainer">
                 <!-- Tasks will be dynamically inserted here -->
                 <div class="empty-state">
                     <i class="fas fa-clipboard-list"></i>
                     <h3>No tasks for this day</h3>
                     <p>Add your first development task using the form above</p>
-                </div>
-            </div>
-        </div>
-
-        <!-- Right Column: Progress Summary -->
-        <div class="panel daily-summary">
-            <h2><i class="fas fa-chart-line"></i> Daily Summary</h2>
-
-            <div class="summary-stats">
-                <div class="summary-item">
-                    <div class="summary-icon completion">
-                        <i class="fas fa-flag-checkered"></i>
-                    </div>
-                    <div class="summary-content">
-                        <h3 id="completionRate">0%</h3>
-                        <p>Completion Rate</p>
-                    </div>
-                </div>
-
-                <div class="summary-item">
-                    <div class="summary-icon tasks">
-                        <i class="fas fa-list-check"></i>
-                    </div>
-                    <div class="summary-content">
-                        <h3 id="inProgressTasks">0</h3>
-                        <p>Tasks In Progress</p>
-                    </div>
-                </div>
-
-                <div class="summary-item">
-                    <div class="summary-icon time">
-                        <i class="fas fa-clock"></i>
-                    </div>
-                    <div class="summary-content">
-                        <h3 id="estimatedTime">0h</h3>
-                        <p>Estimated Time</p>
-                    </div>
-                </div>
-            </div>
-
-            <div class="category-breakdown">
-                <h3 style="margin-bottom: 16px; font-size: 1.2rem;">Category Breakdown</h3>
-                <div id="categoryBreakdown">
-                    <!-- Category items will be dynamically inserted here -->
-                    <div class="empty-state" style="padding: 20px 0;">
-                        <i class="fas fa-chart-pie"></i>
-                        <p>No tasks added yet</p>
-                    </div>
                 </div>
             </div>
         </div>
@@ -874,52 +678,6 @@
                 this.renderTasks();
             }
 
-            // Mark all tasks as complete
-            markAllComplete() {
-                this.tasks.forEach(task => {
-                    task.percentage = 100;
-                    task.completed = true;
-                });
-                this.saveTasks();
-                this.renderTasks();
-            }
-
-            // Clear all tasks for current date
-            clearTasks() {
-                if (confirm('Are you sure you want to clear all tasks for this day?')) {
-                    this.tasks = [];
-                    this.saveTasks();
-                    this.renderTasks();
-                }
-            }
-
-            // Copy tasks from previous day
-            copyPreviousDayTasks() {
-                const previousDate = new Date(this.currentDate);
-                previousDate.setDate(previousDate.getDate() - 1);
-                const previousDateKey = `dev_tasks_${this.formatDate(previousDate)}`;
-
-                const previousTasks = localStorage.getItem(previousDateKey);
-                if (previousTasks) {
-                    const tasksToCopy = JSON.parse(previousTasks);
-
-                    // Reset completion for copied tasks
-                    const copiedTasks = tasksToCopy.map(task => ({
-                        ...task,
-                        id: `task_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
-                        percentage: 0,
-                        completed: false
-                    }));
-
-                    this.tasks = [...this.tasks, ...copiedTasks];
-                    this.saveTasks();
-                    this.renderTasks();
-                    alert(`Copied ${copiedTasks.length} tasks from ${this.formatDateDisplay(previousDate)}`);
-                } else {
-                    alert('No tasks found for the previous day.');
-                }
-            }
-
             // Render tasks to the UI
             renderTasks() {
                 const taskListContainer = document.getElementById('taskListContainer');
@@ -976,68 +734,18 @@
                 this.addTaskEventListeners();
             }
 
-            // Update statistics and summary
+            // Update statistics
             updateStatistics() {
                 // Calculate statistics
                 const totalTasks = this.tasks.length;
                 const completedTasks = this.tasks.filter(task => task.percentage === 100).length;
                 const totalProgress = this.tasks.reduce((sum, task) => sum + task.percentage, 0);
                 const avgProgress = totalTasks > 0 ? Math.round(totalProgress / totalTasks) : 0;
-                const completionRate = totalTasks > 0 ? Math.round((completedTasks / totalTasks) * 100) : 0;
-                const inProgressTasks = this.tasks.filter(task => task.percentage > 0 && task.percentage < 100).length;
 
-                // Estimated time calculation (assuming 1 hour per task on average)
-                const estimatedTime = Math.round(totalTasks * 1.5);
-
-                // Update left column statistics
+                // Update statistics
                 document.getElementById('totalTasks').textContent = totalTasks;
                 document.getElementById('completedTasks').textContent = completedTasks;
                 document.getElementById('avgProgress').textContent = `${avgProgress}%`;
-
-                // Update right column summary
-                document.getElementById('completionRate').textContent = `${completionRate}%`;
-                document.getElementById('inProgressTasks').textContent = inProgressTasks;
-                document.getElementById('estimatedTime').textContent = `${estimatedTime}h`;
-
-                // Update category breakdown
-                this.updateCategoryBreakdown();
-            }
-
-            // Update category breakdown in the summary panel
-            updateCategoryBreakdown() {
-                const categoryBreakdown = document.getElementById('categoryBreakdown');
-
-                if (this.tasks.length === 0) {
-                    categoryBreakdown.innerHTML = `
-                        <div class="empty-state" style="padding: 20px 0;">
-                            <i class="fas fa-chart-pie"></i>
-                            <p>No tasks added yet</p>
-                        </div>
-                    `;
-                    return;
-                }
-
-                // Count tasks by category
-                const categoryCounts = {};
-                this.tasks.forEach(task => {
-                    categoryCounts[task.category] = (categoryCounts[task.category] || 0) + 1;
-                });
-
-                // Create category items
-                let categoryHTML = '';
-                for (const [category, count] of Object.entries(categoryCounts)) {
-                    categoryHTML += `
-                        <div class="category-item">
-                            <div class="category-name">
-                                <i class="fas fa-folder"></i>
-                                <span>${category}</span>
-                            </div>
-                            <div class="category-count">${count}</div>
-                        </div>
-                    `;
-                }
-
-                categoryBreakdown.innerHTML = categoryHTML;
             }
 
             // Setup event listeners for UI interactions
@@ -1098,19 +806,6 @@
                     if (e.key === 'Enter') {
                         document.getElementById('addTaskBtn').click();
                     }
-                });
-
-                // Day management buttons
-                document.getElementById('copyPreviousBtn').addEventListener('click', () => {
-                    this.copyPreviousDayTasks();
-                });
-
-                document.getElementById('markAllCompleteBtn').addEventListener('click', () => {
-                    this.markAllComplete();
-                });
-
-                document.getElementById('clearTasksBtn').addEventListener('click', () => {
-                    this.clearTasks();
                 });
             }
 
