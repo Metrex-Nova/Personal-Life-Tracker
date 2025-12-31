@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -273,9 +274,17 @@
             margin-bottom: 20px;
         }
 
-        .positive { color: var(--accent-success); }
-        .negative { color: var(--accent-warning); }
-        .neutral { color: var(--text-muted); }
+        .positive {
+            color: var(--accent-success);
+        }
+
+        .negative {
+            color: var(--accent-warning);
+        }
+
+        .neutral {
+            color: var(--text-muted);
+        }
 
         /* Form Styles */
         .form-group {
@@ -405,11 +414,25 @@
             font-weight: 500;
         }
 
-        .calories-gained { color: var(--accent-warning); }
-        .calories-lost { color: var(--accent-success); }
-        .net-positive { color: var(--accent-warning); }
-        .net-negative { color: var(--accent-success); }
-        .net-neutral { color: var(--text-muted); }
+        .calories-gained {
+            color: var(--accent-warning);
+        }
+
+        .calories-lost {
+            color: var(--accent-success);
+        }
+
+        .net-positive {
+            color: var(--accent-warning);
+        }
+
+        .net-negative {
+            color: var(--accent-success);
+        }
+
+        .net-neutral {
+            color: var(--text-muted);
+        }
 
         /* Totals Display */
         .totals {
@@ -451,6 +474,7 @@
             font-size: 0.9rem;
             white-space: nowrap;
         }
+
         #datePicker::-webkit-calendar-picker-indicator {
             filter: invert(1);
             /* Makes the icon white */
@@ -468,43 +492,43 @@
                 flex-direction: column;
                 align-items: stretch;
             }
-            
+
             .header h1 {
                 font-size: 1.8rem;
             }
-            
+
             .header-controls {
                 flex-direction: row;
             }
-            
+
             .date-selector {
                 flex-direction: column;
                 align-items: stretch;
             }
-            
+
             .calendar-grid {
                 gap: 3px;
                 padding: 10px;
             }
-            
+
             .calendar-day {
                 padding: 8px 3px;
                 font-size: 0.9rem;
             }
-            
+
             .card {
                 padding: 15px;
             }
-            
+
             .weight-display {
                 font-size: 2rem;
             }
-            
+
             .date-range-export {
                 flex-direction: column;
                 align-items: stretch;
             }
-            
+
             .date-range-inputs {
                 flex-direction: column;
                 align-items: stretch;
@@ -531,6 +555,7 @@
         }
     </style>
 </head>
+
 <body>
     <div class="container">
         <header class="header">
@@ -568,7 +593,7 @@
                 <h2>Weight Tracking</h2>
                 <div class="weight-display" id="currentWeight">-- kg</div>
                 <div class="weight-change" id="weightChange">No previous data</div>
-                
+
                 <div class="form-group">
                     <label for="updateWeight">Update Weight (kg)</label>
                     <input type="number" id="updateWeight" class="form-control" step="0.1" min="0">
@@ -579,31 +604,31 @@
             <!-- Center Column: Meal Tracking -->
             <div class="card">
                 <h2>Meal Tracking</h2>
-                
+
                 <form id="mealForm">
                     <div class="form-group">
                         <label for="mealName">Meal Name</label>
                         <input type="text" id="mealName" class="form-control" required>
                     </div>
-                    
+
                     <div class="form-group">
                         <label for="mealCalories">Calories</label>
                         <input type="number" id="mealCalories" class="form-control" min="0" required>
                     </div>
-                    
+
                     <div class="form-group">
                         <label for="mealWeight">Weight (grams)</label>
                         <input type="number" id="mealWeight" class="form-control" min="0" required>
                     </div>
-                    
+
                     <button type="submit" class="btn btn-primary">Add Meal</button>
                 </form>
-                
+
                 <div class="totals">
-                    Total Weight: <span id="totalMealWeight">0</span>g | 
+                    Total Weight: <span id="totalMealWeight">0</span>g |
                     Total Calories: <span id="totalMealCalories">0</span>
                 </div>
-                
+
                 <div class="item-list" id="mealList">
                     <!-- Meal items will be added here -->
                 </div>
@@ -612,25 +637,25 @@
             <!-- Right Column: Activity Tracking -->
             <div class="card">
                 <h2>Activity Tracking</h2>
-                
+
                 <form id="activityForm">
                     <div class="form-group">
                         <label for="activityName">Activity Name</label>
                         <input type="text" id="activityName" class="form-control" required>
                     </div>
-                    
+
                     <div class="form-group">
                         <label for="activityCalories">Calories Burnt</label>
                         <input type="number" id="activityCalories" class="form-control" min="0" required>
                     </div>
-                    
+
                     <button type="submit" class="btn btn-primary">Add Activity</button>
                 </form>
-                
+
                 <div class="totals">
                     Total Calories Burnt: <span id="totalActivityCalories">0</span>
                 </div>
-                
+
                 <div class="item-list" id="activityList">
                     <!-- Activity items will be added here -->
                 </div>
@@ -682,30 +707,30 @@
         const exportRangeButton = document.getElementById('exportRangePdf');
         const startDateInput = document.getElementById('startDate');
         const endDateInput = document.getElementById('endDate');
-        
+
         // Weight elements
         const currentWeightElement = document.getElementById('currentWeight');
         const weightChangeElement = document.getElementById('weightChange');
         const updateWeightInput = document.getElementById('updateWeight');
         const saveWeightButton = document.getElementById('saveWeight');
-        
+
         // Meal elements
         const mealForm = document.getElementById('mealForm');
         const mealList = document.getElementById('mealList');
         const totalMealWeightElement = document.getElementById('totalMealWeight');
         const totalMealCaloriesElement = document.getElementById('totalMealCalories');
-        
+
         // Activity elements
         const activityForm = document.getElementById('activityForm');
         const activityList = document.getElementById('activityList');
         const totalActivityCaloriesElement = document.getElementById('totalActivityCalories');
-        
+
         // Summary elements
         const summaryGainedElement = document.getElementById('summaryGained');
         const summaryLostElement = document.getElementById('summaryLost');
         const summaryNetElement = document.getElementById('summaryNet');
-        
-        // Calendar elements
+
+        // Calendar elements (check if they exist before using)
         const calendarMonthElement = document.getElementById('calendarMonth');
         const calendarGrid = document.getElementById('calendarGrid');
         const prevMonthButton = document.getElementById('prevMonth');
@@ -713,22 +738,24 @@
         const todayButton = document.getElementById('todayBtn');
 
         // Initialize the application
-        document.addEventListener('DOMContentLoaded', function() {
+        document.addEventListener('DOMContentLoaded', function () {
             // Set current date
             updateCurrentDateDisplay();
-            
+
             // Set default date inputs
             const today = new Date().toISOString().split('T')[0];
             dateSelector.value = today;
             startDateInput.value = today;
             endDateInput.value = today;
-            
+
             // Load data for today
             loadDateData(currentSelectedDate);
-            
-            // Initialize calendar
-            updateCalendar();
-            
+
+            // Initialize calendar only if calendar elements exist
+            if (calendarGrid && calendarMonthElement) {
+                updateCalendar();
+            }
+
             // Event listeners
             saveWeightButton.addEventListener('click', updateWeight);
             mealForm.addEventListener('submit', addMeal);
@@ -736,32 +763,34 @@
             loadDateButton.addEventListener('click', loadSelectedDate);
             exportTodayButton.addEventListener('click', () => exportToPDF(currentSelectedDate, currentSelectedDate));
             exportRangeButton.addEventListener('click', exportDateRange);
-            
-            // Calendar navigation
-            prevMonthButton.addEventListener('click', () => {
-                calendarCurrentMonth--;
-                if (calendarCurrentMonth < 0) {
-                    calendarCurrentMonth = 11;
-                    calendarCurrentYear--;
-                }
-                updateCalendar();
-            });
-            
-            nextMonthButton.addEventListener('click', () => {
-                calendarCurrentMonth++;
-                if (calendarCurrentMonth > 11) {
-                    calendarCurrentMonth = 0;
-                    calendarCurrentYear++;
-                }
-                updateCalendar();
-            });
-            
-            todayButton.addEventListener('click', () => {
-                const today = new Date();
-                calendarCurrentMonth = today.getMonth();
-                calendarCurrentYear = today.getFullYear();
-                updateCalendar();
-            });
+
+            // Calendar navigation (only if elements exist)
+            if (prevMonthButton && nextMonthButton && todayButton) {
+                prevMonthButton.addEventListener('click', () => {
+                    calendarCurrentMonth--;
+                    if (calendarCurrentMonth < 0) {
+                        calendarCurrentMonth = 11;
+                        calendarCurrentYear--;
+                    }
+                    updateCalendar();
+                });
+
+                nextMonthButton.addEventListener('click', () => {
+                    calendarCurrentMonth++;
+                    if (calendarCurrentMonth > 11) {
+                        calendarCurrentMonth = 0;
+                        calendarCurrentYear++;
+                    }
+                    updateCalendar();
+                });
+
+                todayButton.addEventListener('click', () => {
+                    const today = new Date();
+                    calendarCurrentMonth = today.getMonth();
+                    calendarCurrentYear = today.getFullYear();
+                    updateCalendar();
+                });
+            }
         });
 
         // Date Management Functions
@@ -781,13 +810,15 @@
             if (selectedDate) {
                 currentSelectedDate = selectedDate;
                 loadDateData(selectedDate);
-                updateCalendar();
+                if (calendarGrid) {
+                    updateCalendar();
+                }
             }
         }
 
         function loadDateData(dateString) {
             const storageKeys = getStorageKeysForDate(dateString);
-            
+
             // Update UI to show selected date
             const date = new Date(dateString);
             const formattedDate = date.toLocaleDateString('en-US', {
@@ -797,10 +828,10 @@
                 day: 'numeric'
             });
             currentDateElement.textContent = formattedDate + " (Selected)";
-            
+
             // Load weight data
             loadWeightDataForDate(dateString);
-            
+
             // Load meals and activities
             loadMealsForDate(dateString);
             loadActivitiesForDate(dateString);
@@ -818,16 +849,21 @@
 
         // Calendar Functions
         function updateCalendar() {
+            // Only update if calendar elements exist
+            if (!calendarGrid || !calendarMonthElement) {
+                return;
+            }
+
             // Clear calendar
             calendarGrid.innerHTML = '';
-            
+
             // Set month title
             const monthNames = [
                 'January', 'February', 'March', 'April', 'May', 'June',
                 'July', 'August', 'September', 'October', 'November', 'December'
             ];
             calendarMonthElement.textContent = `${monthNames[calendarCurrentMonth]} ${calendarCurrentYear}`;
-            
+
             // Create day headers
             const dayHeaders = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
             dayHeaders.forEach(day => {
@@ -836,47 +872,47 @@
                 dayElement.textContent = day;
                 calendarGrid.appendChild(dayElement);
             });
-            
+
             // Get first day of month
             const firstDay = new Date(calendarCurrentYear, calendarCurrentMonth, 1);
             const startingDay = firstDay.getDay();
-            
+
             // Get days in month
             const daysInMonth = new Date(calendarCurrentYear, calendarCurrentMonth + 1, 0).getDate();
-            
+
             // Get previous month days
             const prevMonthDays = new Date(calendarCurrentYear, calendarCurrentMonth, 0).getDate();
-            
+
             // Add previous month days
             for (let i = 0; i < startingDay; i++) {
                 const day = prevMonthDays - startingDay + i + 1;
                 const dayElement = createCalendarDay(day, 'other-month', false);
                 calendarGrid.appendChild(dayElement);
             }
-            
+
             // Add current month days
             const today = new Date().toISOString().split('T')[0];
             const selectedDate = currentSelectedDate;
-            
+
             for (let i = 1; i <= daysInMonth; i++) {
                 const dateStr = `${calendarCurrentYear}-${String(calendarCurrentMonth + 1).padStart(2, '0')}-${String(i).padStart(2, '0')}`;
                 const isToday = dateStr === today;
                 const isSelected = dateStr === selectedDate;
                 const hasData = checkDateHasData(dateStr);
-                
+
                 let className = 'calendar-day';
                 if (isToday) className += ' today';
                 if (isSelected) className += ' selected';
                 if (hasData) className += ' has-data';
-                
+
                 const dayElement = createCalendarDay(i, className, true, dateStr);
                 calendarGrid.appendChild(dayElement);
             }
-            
+
             // Add next month days to fill grid
             const totalCells = 42; // 6 weeks * 7 days
             const remainingCells = totalCells - (startingDay + daysInMonth);
-            
+
             for (let i = 1; i <= remainingCells; i++) {
                 const dayElement = createCalendarDay(i, 'other-month', false);
                 calendarGrid.appendChild(dayElement);
@@ -887,7 +923,7 @@
             const dayElement = document.createElement('div');
             dayElement.className = className;
             dayElement.textContent = day;
-            
+
             if (isCurrentMonth && dateStr) {
                 dayElement.dataset.date = dateStr;
                 dayElement.addEventListener('click', () => {
@@ -895,17 +931,17 @@
                     document.querySelectorAll('.calendar-day.selected').forEach(el => {
                         el.classList.remove('selected');
                     });
-                    
+
                     // Add selected class to clicked day
                     dayElement.classList.add('selected');
-                    
+
                     // Load data for this date
                     currentSelectedDate = dateStr;
                     dateSelector.value = dateStr;
                     loadDateData(dateStr);
                 });
             }
-            
+
             return dayElement;
         }
 
@@ -913,30 +949,30 @@
             const storageKeys = getStorageKeysForDate(dateStr);
             const meals = JSON.parse(localStorage.getItem(storageKeys.meals) || '[]');
             const activities = JSON.parse(localStorage.getItem(storageKeys.activities) || '[]');
-            
+
             return meals.length > 0 || activities.length > 0;
         }
 
         // Weight Management Functions
         function loadWeightDataForDate(dateString) {
             const weightHistory = JSON.parse(localStorage.getItem('health_weight_history') || '[]');
-            
+
             // Find the most recent weight record up to the selected date
             const relevantWeights = weightHistory.filter(record => record.date <= dateString);
             relevantWeights.sort((a, b) => new Date(b.date) - new Date(a.date));
-            
+
             if (relevantWeights.length > 0) {
                 const currentWeight = relevantWeights[0].weight;
                 currentWeightElement.textContent = `${currentWeight} kg`;
                 updateWeightInput.value = currentWeight;
-                
+
                 // Calculate weight change from previous record
                 if (relevantWeights.length > 1) {
                     const previousWeight = relevantWeights[1].weight;
                     const change = parseFloat(currentWeight) - parseFloat(previousWeight);
                     const changeDate = new Date(relevantWeights[1].date);
                     const formattedDate = changeDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
-                    
+
                     if (change > 0) {
                         weightChangeElement.innerHTML = `<span class="positive">+${change.toFixed(1)} kg since ${formattedDate}</span>`;
                     } else if (change < 0) {
@@ -956,18 +992,18 @@
 
         function updateWeight() {
             const newWeight = parseFloat(updateWeightInput.value);
-            
+
             if (isNaN(newWeight) || newWeight <= 0) {
                 alert('Please enter a valid weight');
                 return;
             }
-            
+
             // Update weight history
             const weightHistory = JSON.parse(localStorage.getItem('health_weight_history') || '[]');
-            
+
             // Check if we already have a weight record for today
             const existingIndex = weightHistory.findIndex(record => record.date === currentSelectedDate);
-            
+
             if (existingIndex !== -1) {
                 weightHistory[existingIndex].weight = newWeight;
                 weightHistory[existingIndex].timestamp = new Date().toISOString();
@@ -978,12 +1014,14 @@
                     timestamp: new Date().toISOString()
                 });
             }
-            
+
             localStorage.setItem('health_weight_history', JSON.stringify(weightHistory));
-            
+
             // Update UI
             loadWeightDataForDate(currentSelectedDate);
-            updateCalendar();
+            if (calendarGrid) {
+                updateCalendar();
+            }
         }
 
         // Meal Management Functions
@@ -991,49 +1029,49 @@
             const storageKeys = getStorageKeysForDate(dateString);
             const meals = JSON.parse(localStorage.getItem(storageKeys.meals) || '[]');
             mealList.innerHTML = '';
-            
+
             let totalWeight = 0;
             let totalCalories = 0;
-            
+
             if (meals.length === 0) {
                 mealList.innerHTML = '<div class="list-item"><div class="item-info"><h4>No meals logged</h4></div></div>';
             } else {
                 // Sort meals by timestamp (newest first)
                 meals.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
-                
+
                 meals.forEach(meal => {
                     totalWeight += meal.weight || 0;
                     totalCalories += meal.calories || 0;
-                    
+
                     const mealElement = document.createElement('div');
                     mealElement.className = 'list-item';
                     mealElement.innerHTML = `
-                        <div class="item-info">
-                            <h4>${meal.name}</h4>
-                            <div class="item-details">${meal.calories} cal • ${meal.weight}g</div>
-                        </div>
-                        <button class="delete-btn" onclick="deleteMeal('${meal.id}', '${dateString}')">Delete</button>
-                    `;
+                <div class="item-info">
+                    <h4>${meal.name}</h4>
+                    <div class="item-details">${meal.calories} cal • ${meal.weight}g</div>
+                </div>
+                <button class="delete-btn" onclick="deleteMeal('${meal.id}', '${dateString}')">Delete</button>
+            `;
                     mealList.appendChild(mealElement);
                 });
             }
-            
+
             totalMealWeightElement.textContent = totalWeight;
             totalMealCaloriesElement.textContent = totalCalories;
         }
 
         function addMeal(e) {
             e.preventDefault();
-            
+
             const name = document.getElementById('mealName').value.trim();
             const calories = parseInt(document.getElementById('mealCalories').value);
             const weight = parseInt(document.getElementById('mealWeight').value);
-            
+
             if (!name || isNaN(calories) || isNaN(weight)) {
                 alert('Please fill in all fields with valid values');
                 return;
             }
-            
+
             const meal = {
                 id: Date.now().toString(),
                 name,
@@ -1041,17 +1079,19 @@
                 weight,
                 timestamp: new Date().toISOString()
             };
-            
+
             const storageKeys = getStorageKeysForDate(currentSelectedDate);
             const meals = JSON.parse(localStorage.getItem(storageKeys.meals) || '[]');
             meals.push(meal);
             localStorage.setItem(storageKeys.meals, JSON.stringify(meals));
-            
+
             // Reset form and update UI
             mealForm.reset();
             loadMealsForDate(currentSelectedDate);
             updateSummaryForDate(currentSelectedDate);
-            updateCalendar();
+            if (calendarGrid) {
+                updateCalendar();
+            }
         }
 
         function deleteMeal(id, dateString) {
@@ -1061,7 +1101,9 @@
             localStorage.setItem(storageKeys.meals, JSON.stringify(filteredMeals));
             loadMealsForDate(dateString);
             updateSummaryForDate(dateString);
-            updateCalendar();
+            if (calendarGrid) {
+                updateCalendar();
+            }
         }
 
         // Activity Management Functions
@@ -1069,62 +1111,64 @@
             const storageKeys = getStorageKeysForDate(dateString);
             const activities = JSON.parse(localStorage.getItem(storageKeys.activities) || '[]');
             activityList.innerHTML = '';
-            
+
             let totalCalories = 0;
-            
+
             if (activities.length === 0) {
                 activityList.innerHTML = '<div class="list-item"><div class="item-info"><h4>No activities logged</h4></div></div>';
             } else {
                 // Sort activities by timestamp (newest first)
                 activities.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
-                
+
                 activities.forEach(activity => {
                     totalCalories += activity.calories || 0;
-                    
+
                     const activityElement = document.createElement('div');
                     activityElement.className = 'list-item';
                     activityElement.innerHTML = `
-                        <div class="item-info">
-                            <h4>${activity.name}</h4>
-                            <div class="item-details">${activity.calories} cal burnt</div>
-                        </div>
-                        <button class="delete-btn" onclick="deleteActivity('${activity.id}', '${dateString}')">Delete</button>
-                    `;
+                <div class="item-info">
+                    <h4>${activity.name}</h4>
+                    <div class="item-details">${activity.calories} cal burnt</div>
+                </div>
+                <button class="delete-btn" onclick="deleteActivity('${activity.id}', '${dateString}')">Delete</button>
+            `;
                     activityList.appendChild(activityElement);
                 });
             }
-            
+
             totalActivityCaloriesElement.textContent = totalCalories;
         }
 
         function addActivity(e) {
             e.preventDefault();
-            
+
             const name = document.getElementById('activityName').value.trim();
             const calories = parseInt(document.getElementById('activityCalories').value);
-            
+
             if (!name || isNaN(calories)) {
                 alert('Please fill in all fields with valid values');
                 return;
             }
-            
+
             const activity = {
                 id: Date.now().toString(),
                 name,
                 calories,
                 timestamp: new Date().toISOString()
             };
-            
+
             const storageKeys = getStorageKeysForDate(currentSelectedDate);
             const activities = JSON.parse(localStorage.getItem(storageKeys.activities) || '[]');
             activities.push(activity);
             localStorage.setItem(storageKeys.activities, JSON.stringify(activities));
-            
+
             // Reset form and update UI
             activityForm.reset();
             loadActivitiesForDate(currentSelectedDate);
             updateSummaryForDate(currentSelectedDate);
-            updateCalendar();
+            if (calendarGrid) {
+                updateCalendar();
+            }
         }
 
         function deleteActivity(id, dateString) {
@@ -1134,7 +1178,9 @@
             localStorage.setItem(storageKeys.activities, JSON.stringify(filteredActivities));
             loadActivitiesForDate(dateString);
             updateSummaryForDate(dateString);
-            updateCalendar();
+            if (calendarGrid) {
+                updateCalendar();
+            }
         }
 
         // Summary Functions
@@ -1142,15 +1188,15 @@
             const storageKeys = getStorageKeysForDate(dateString);
             const meals = JSON.parse(localStorage.getItem(storageKeys.meals) || '[]');
             const activities = JSON.parse(localStorage.getItem(storageKeys.activities) || '[]');
-            
+
             const gained = meals.reduce((sum, meal) => sum + (meal.calories || 0), 0);
             const lost = activities.reduce((sum, activity) => sum + (activity.calories || 0), 0);
             const net = gained - lost;
-            
+
             summaryGainedElement.textContent = gained;
             summaryLostElement.textContent = lost;
             summaryNetElement.textContent = net;
-            
+
             // Color coding for net calories
             summaryNetElement.className = 'summary-value ';
             if (net > 0) {
@@ -1166,17 +1212,17 @@
         function exportDateRange() {
             const startDate = startDateInput.value;
             const endDate = endDateInput.value;
-            
+
             if (!startDate || !endDate) {
                 alert('Please select both start and end dates');
                 return;
             }
-            
+
             if (new Date(startDate) > new Date(endDate)) {
                 alert('Start date must be before or equal to end date');
                 return;
             }
-            
+
             exportToPDF(startDate, endDate);
         }
 
@@ -1188,19 +1234,19 @@
                 format: 'a4',
                 hotfixes: ["px_scaling"]
             });
-            
+
             // Set document properties
             doc.setProperties({
                 title: `PLT-2026 Health Report - ${startDate} to ${endDate}`,
                 subject: 'Health Tracker Summary',
                 author: 'PLT-2026 Personal Life Tracker'
             });
-            
+
             // Title (reduced margin: 15mm from top)
             doc.setFontSize(18);
             doc.setTextColor(32, 201, 176); // Teal color
             doc.text('PLT-2026 Health Tracker Report', 105, 15, null, null, 'center');
-            
+
             // Date Range
             doc.setFontSize(11);
             doc.setTextColor(128, 128, 128);
@@ -1209,26 +1255,26 @@
             } else {
                 doc.text(`Date Range: ${startDate} to ${endDate}`, 105, 22, null, null, 'center');
             }
-            
+
             let yPos = 30; // Reduced starting position
-            
+
             // Process each date in range
             const start = new Date(startDate);
             const end = new Date(endDate);
             let currentDate = new Date(start);
-            
+
             while (currentDate <= end) {
                 const dateStr = currentDate.toISOString().split('T')[0];
                 const storageKeys = getStorageKeysForDate(dateStr);
-                
+
                 // Get data for this date
                 const meals = JSON.parse(localStorage.getItem(storageKeys.meals) || '[]');
                 const activities = JSON.parse(localStorage.getItem(storageKeys.activities) || '[]');
                 const weightHistory = JSON.parse(localStorage.getItem('health_weight_history') || '[]');
-                
+
                 // Find weight for this date
                 const weightRecord = weightHistory.find(record => record.date === dateStr);
-                
+
                 // Only add page break if we have data and not at the beginning
                 if ((meals.length > 0 || activities.length > 0 || weightRecord) && yPos > 10) {
                     if (yPos > 250) { // Reduced page break threshold
@@ -1236,7 +1282,7 @@
                         yPos = 10; // Reduced margin for new pages
                     }
                 }
-                
+
                 // Add date header if we have data
                 if (meals.length > 0 || activities.length > 0 || weightRecord) {
                     // Format date nicely
@@ -1246,12 +1292,12 @@
                         month: 'short',
                         day: 'numeric'
                     });
-                    
+
                     doc.setFontSize(14);
                     doc.setTextColor(0, 0, 0);
                     doc.text(formattedDate, 15, yPos);
                     yPos += 8; // Reduced spacing
-                    
+
                     // Weight for this date
                     if (weightRecord) {
                         doc.setFontSize(10);
@@ -1259,32 +1305,32 @@
                         doc.text(`Weight: ${weightRecord.weight} kg`, 15, yPos);
                         yPos += 6; // Reduced spacing
                     }
-                    
+
                     // Calculate totals
                     const gained = meals.reduce((sum, meal) => sum + (meal.calories || 0), 0);
                     const lost = activities.reduce((sum, activity) => sum + (activity.calories || 0), 0);
                     const net = gained - lost;
-                    
+
                     // Summary for this date
                     doc.setTextColor(0, 0, 0);
                     doc.text(`Gained: ${gained} cal | Burnt: ${lost} cal | Net: ${net} cal`, 15, yPos);
                     yPos += 8; // Reduced spacing
-                    
+
                     // Meals for this date (compact)
                     if (meals.length > 0) {
                         doc.setFontSize(10);
                         doc.setTextColor(255, 179, 71); // Amber
                         doc.text('Meals:', 15, yPos);
                         yPos += 5; // Reduced spacing
-                        
+
                         doc.setFontSize(9);
                         doc.setTextColor(128, 128, 128);
-                        
+
                         let mealLines = [];
                         meals.forEach(meal => {
                             mealLines.push(`• ${meal.name}: ${meal.calories} cal, ${meal.weight}g`);
                         });
-                        
+
                         // Split long lines to fit page width
                         mealLines.forEach(line => {
                             const lines = doc.splitTextToSize(line, 180); // Reduced width for more margin
@@ -1299,22 +1345,22 @@
                         });
                         yPos += 3; // Reduced spacing after meals
                     }
-                    
+
                     // Activities for this date (compact)
                     if (activities.length > 0) {
                         doc.setFontSize(10);
                         doc.setTextColor(46, 204, 113); // Emerald
                         doc.text('Activities:', 15, yPos);
                         yPos += 5; // Reduced spacing
-                        
+
                         doc.setFontSize(9);
                         doc.setTextColor(128, 128, 128);
-                        
+
                         let activityLines = [];
                         activities.forEach(activity => {
                             activityLines.push(`• ${activity.name}: ${activity.calories} cal burnt`);
                         });
-                        
+
                         // Split long lines to fit page width
                         activityLines.forEach(line => {
                             const lines = doc.splitTextToSize(line, 180); // Reduced width for more margin
@@ -1328,48 +1374,48 @@
                             });
                         });
                     }
-                    
+
                     yPos += 10; // Reduced spacing between dates
                 }
-                
+
                 // Move to next day
                 currentDate.setDate(currentDate.getDate() + 1);
             }
-            
+
             // Add overall summary if multiple dates
             if (startDate !== endDate) {
                 if (yPos > 230) { // Adjusted for page break
                     doc.addPage();
                     yPos = 10;
                 }
-                
+
                 doc.setFontSize(14);
                 doc.setTextColor(0, 0, 0);
                 doc.text('Overall Summary', 15, yPos);
                 yPos += 8;
-                
+
                 // Calculate totals across all dates
                 currentDate = new Date(start);
                 let totalGained = 0;
                 let totalLost = 0;
                 let daysWithData = 0;
-                
+
                 while (currentDate <= end) {
                     const dateStr = currentDate.toISOString().split('T')[0];
                     const storageKeys = getStorageKeysForDate(dateStr);
-                    
+
                     const meals = JSON.parse(localStorage.getItem(storageKeys.meals) || '[]');
                     const activities = JSON.parse(localStorage.getItem(storageKeys.activities) || '[]');
-                    
+
                     if (meals.length > 0 || activities.length > 0) {
                         daysWithData++;
                         totalGained += meals.reduce((sum, meal) => sum + (meal.calories || 0), 0);
                         totalLost += activities.reduce((sum, activity) => sum + (activity.calories || 0), 0);
                     }
-                    
+
                     currentDate.setDate(currentDate.getDate() + 1);
                 }
-                
+
                 doc.setFontSize(10);
                 doc.text(`Days with data: ${daysWithData}`, 20, yPos);
                 yPos += 5;
@@ -1379,24 +1425,25 @@
                 yPos += 5;
                 doc.text(`Overall net: ${totalGained - totalLost} calories`, 20, yPos);
             }
-            
+
             // Footer
             const pageCount = doc.internal.getNumberOfPages();
-            for(let i = 1; i <= pageCount; i++) {
+            for (let i = 1; i <= pageCount; i++) {
                 doc.setPage(i);
                 doc.setFontSize(8);
                 doc.setTextColor(128, 128, 128);
                 doc.text(`Page ${i} of ${pageCount}`, 105, 290, null, null, 'center'); // Moved to bottom
                 doc.text('Generated by PLT-2026 Personal Life Tracker', 105, 293, null, null, 'center'); // Moved to bottom
             }
-            
+
             // Save the PDF
-            const filename = startDate === endDate 
+            const filename = startDate === endDate
                 ? `PLT-2026_Health_Report_${startDate}.pdf`
                 : `PLT-2026_Health_Report_${startDate}_to_${endDate}.pdf`;
-            
+
             doc.save(filename);
         }
     </script>
 </body>
+
 </html>
